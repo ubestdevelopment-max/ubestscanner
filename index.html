@@ -3,180 +3,1132 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>UBEST Order Scanner - Auto Config</title>
+<title>UBEST Order Scanner</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-/* ... (All your existing CSS styles remain the same) ... */
-:root { --bg: #060a12; --s1: #0d1420; --s2: #131d2e; --s3: #1a2640; --border: #1e2d45; --border2: #263850; --cyan: #06d6d6; --cyan2: #04a8a8; --green: #00e676; --red: #ff3d5a; --orange: #ff9800; --blue: #4a9eff; --text: #dde8f5; --muted: #4d6480; --muted2: #7a95b0; --mono: 'IBM Plex Mono', monospace; --head: 'Syne', sans-serif; --body: 'Outfit', sans-serif; }
+:root {
+  --bg: #060a12;
+  --s1: #0d1420;
+  --s2: #131d2e;
+  --s3: #1a2640;
+  --border: #1e2d45;
+  --border2: #263850;
+  --cyan: #06d6d6;
+  --cyan2: #04a8a8;
+  --green: #00e676;
+  --red: #ff3d5a;
+  --orange: #ff9800;
+  --blue: #4a9eff;
+  --text: #dde8f5;
+  --muted: #4d6480;
+  --muted2: #7a95b0;
+  --mono: 'IBM Plex Mono', monospace;
+  --head: 'Syne', sans-serif;
+  --body: 'Outfit', sans-serif;
+}
 * { margin:0; padding:0; box-sizing:border-box; }
-body { background: var(--bg); color: var(--text); font-family: var(--body); min-height: 100vh; -webkit-font-smoothing: antialiased; }
-.wrap { position:relative; z-index:1; max-width:680px; margin:0 auto; padding:20px 16px 100px; }
-.topbar { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; background: var(--s1); border: 1px solid var(--border); border-radius:14px; margin-bottom:16px; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Grid bg */
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background-image:
+    linear-gradient(rgba(6,214,214,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6,214,214,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events:none; z-index:0;
+}
+body::after {
+  content:'';
+  position:fixed;
+  top:-300px; right:-300px;
+  width:800px; height:800px;
+  background: radial-gradient(circle, rgba(6,214,214,0.04) 0%, transparent 65%);
+  pointer-events:none; z-index:0;
+}
+
+.wrap {
+  position:relative; z-index:1;
+  max-width:680px;
+  margin:0 auto;
+  padding:20px 16px 100px;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 20px;
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius:14px;
+  margin-bottom:16px;
+}
 .brand { display:flex; align-items:center; gap:10px; }
-.brand-name { font-family:var(--head); font-size:17px; font-weight:800; }
-.status-pill { display:flex; align-items:center; gap:6px; padding:6px 12px; border-radius:20px; font-size:11px; font-weight:600; border: 1px solid var(--border); background: var(--s2); color: var(--muted2); }
-.status-pill.connected { border-color:var(--green); color:var(--green); }
-.card { background: var(--s1); border: 1px solid var(--border); border-radius:14px; padding:20px; margin-bottom:14px; }
-.field label { display:block; font-size:11px; font-weight:500; color:var(--muted2); text-transform:uppercase; margin-bottom:5px; font-family:var(--mono); }
-.field input, .field select { width:100%; background:var(--s2); border:1px solid var(--border); border-radius:8px; padding:11px 13px; color:var(--text); font-family:var(--mono); font-size:13px; outline:none; }
-.scanner-card { background:var(--s1); border:1px solid var(--border); border-radius:14px; padding:20px; margin-bottom:14px; }
-.scan-row { display:flex; gap:10px; align-items:flex-end; }
-.add-btn { height:50px; padding:0 18px; background:var(--cyan); border:none; border-radius:8px; color:var(--bg); font-weight:700; cursor:pointer; }
-.item-list { display:flex; flex-direction:column; gap:7px; margin-bottom:14px; }
-.item { display:flex; align-items:center; gap:10px; background:var(--s2); border:1px solid var(--border); border-radius:10px; padding:11px 14px; }
-.item-bar { font-family:var(--mono); font-size:13px; color:var(--cyan); flex:1; }
-.submit-btn { width:100%; height:56px; background:var(--cyan); border:none; border-radius:10px; color:var(--bg); font-weight:800; cursor:pointer; }
-.submit-btn:disabled { opacity:0.3; }
+.brand-logo {
+  width:38px; height:38px;
+  background: linear-gradient(135deg, var(--cyan), #0a9f9f);
+  border-radius:9px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px;
+}
+.brand-name {
+  font-family:var(--head);
+  font-size:17px; font-weight:800;
+  letter-spacing:0.5px;
+}
+.brand-sub { font-size:11px; color:var(--muted); margin-top:1px; font-family:var(--mono); }
+.status-pill {
+  display:flex; align-items:center; gap:6px;
+  padding:6px 12px;
+  border-radius:20px;
+  font-size:11px; font-weight:600;
+  font-family:var(--mono);
+  letter-spacing:0.5px;
+  border: 1px solid var(--border);
+  background: var(--s2);
+  color: var(--muted2);
+  transition: all 0.3s;
+}
+.status-pill.connected { border-color:var(--green); color:var(--green); background:rgba(0,230,118,0.07); }
+.status-pill.error { border-color:var(--red); color:var(--red); background:rgba(255,61,90,0.07); }
+.status-dot { width:7px; height:7px; border-radius:50%; background:currentColor; }
+.status-pill.connected .status-dot { animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ── CARDS ── */
+.card {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius:14px;
+  padding:20px;
+  margin-bottom:14px;
+}
+.card-title {
+  font-family:var(--mono);
+  font-size:10px; font-weight:600;
+  text-transform:uppercase; letter-spacing:1.5px;
+  color:var(--muted);
+  margin-bottom:14px;
+  display:flex; align-items:center; gap:8px;
+}
+.card-title::before {
+  content:'';
+  width:3px; height:12px;
+  background:var(--cyan);
+  border-radius:2px;
+  display:block;
+}
+
+/* ── INPUTS ── */
+.field { margin-bottom:12px; }
+.field:last-child { margin-bottom:0; }
+.field label {
+  display:block;
+  font-size:11px; font-weight:500;
+  color:var(--muted2);
+  text-transform:uppercase; letter-spacing:0.6px;
+  margin-bottom:5px;
+  font-family:var(--mono);
+}
+.field input, .field select {
+  width:100%;
+  background:var(--s2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:11px 13px;
+  color:var(--text);
+  font-family:var(--mono);
+  font-size:13px;
+  outline:none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none;
+}
+.field input:focus, .field select:focus {
+  border-color:var(--cyan);
+  box-shadow:0 0 0 3px rgba(6,214,214,0.08);
+}
+.field select option { background:var(--s1); }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+/* ── CONNECT BTN ── */
+.connect-btn {
+  width:100%; padding:13px;
+  background:linear-gradient(135deg, var(--cyan), #059f9f);
+  border:none; border-radius:9px;
+  color:var(--bg);
+  font-family:var(--head);
+  font-size:14px; font-weight:700;
+  cursor:pointer;
+  letter-spacing:0.5px;
+  transition:all 0.2s;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  margin-top:4px;
+}
+.connect-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(6,214,214,0.25); }
+.connect-btn:active { transform:translateY(0); }
+.connect-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none; }
+
+/* ── SESSION ROW ── */
+.session-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+/* ── SCANNER ── */
+.scanner-card {
+  background:var(--s1);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:20px;
+  margin-bottom:14px;
+  position:relative;
+  overflow:hidden;
+  transition:border-color 0.3s;
+}
+.scanner-card.scanning { border-color:var(--cyan); }
+.scanner-card.scanning::after {
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0;
+  height:2px;
+  background:linear-gradient(90deg, transparent, var(--cyan), transparent);
+  animation:shimmer 1.5s infinite;
+}
+@keyframes shimmer {
+  0% { opacity:0.3; transform:scaleX(0.3); }
+  50% { opacity:1; transform:scaleX(1); }
+  100% { opacity:0.3; transform:scaleX(0.3); }
+}
+
+.scan-row {
+  display:flex; gap:10px; align-items:flex-end;
+}
+.scan-barcode-wrap { flex:1; }
+.scan-qty-wrap { width:88px; flex-shrink:0; }
+.barcode-in {
+  font-size:15px !important;
+  padding:14px 14px !important;
+  background:var(--bg) !important;
+  border-color:var(--cyan) !important;
+  letter-spacing:1px;
+}
+.barcode-in::placeholder { color:var(--muted); font-size:12px; letter-spacing:0; }
+.qty-in { text-align:center; font-size:16px !important; height:50px; }
+
+.add-btn {
+  height:50px; padding:0 18px;
+  background:var(--cyan);
+  border:none; border-radius:8px;
+  color:var(--bg);
+  font-family:var(--head);
+  font-size:14px; font-weight:700;
+  cursor:pointer;
+  white-space:nowrap; flex-shrink:0;
+  transition:all 0.15s;
+}
+.add-btn:hover { background:#08f0f0; transform:translateY(-1px); }
+.add-btn:active { transform:translateY(0); }
+
+.hint-row {
+  display:flex; align-items:center; gap:8px;
+  margin-top:10px;
+  font-size:11px; color:var(--muted2);
+  font-family:var(--mono);
+}
+.hint-dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:pulse 1.5s infinite; }
+
+/* Camera */
+.cam-section { display:none; margin-top:14px; }
+.cam-section.show { display:block; }
+#vid-wrap {
+  border-radius:10px; overflow:hidden;
+  background:#000; aspect-ratio:16/9; position:relative;
+}
+#vid { width:100%; height:100%; object-fit:cover; display:block; }
+.cam-overlay {
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  pointer-events:none;
+}
+.cam-frame {
+  width:55%; max-width:220px; height:100px;
+  border:2px solid var(--cyan); border-radius:8px;
+  position:relative;
+  box-shadow:0 0 0 9999px rgba(0,0,0,0.45);
+}
+.cam-beam {
+  position:absolute;
+  top:0; left:0; right:0;
+  height:2px; background:var(--cyan);
+  box-shadow:0 0 8px var(--cyan);
+  animation:beam 1.8s ease-in-out infinite;
+}
+@keyframes beam { 0%{top:0} 100%{top:calc(100% - 2px)} }
+.cam-close {
+  width:100%; margin-top:8px;
+  padding:9px;
+  background:transparent;
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--muted2); font-size:12px;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.cam-close:hover { border-color:var(--red); color:var(--red); }
+.cam-open-btn {
+  width:100%; margin-top:12px;
+  padding:9px;
+  background:transparent;
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--muted2); font-size:12px;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+.cam-open-btn:hover { border-color:var(--cyan); color:var(--cyan); }
+
+/* ── LIST HEADER ── */
+.list-header {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:10px;
+}
+.list-title {
+  font-family:var(--mono);
+  font-size:10px; font-weight:600;
+  text-transform:uppercase; letter-spacing:1.5px;
+  color:var(--muted);
+  display:flex; align-items:center; gap:8px;
+}
+.list-title::before {
+  content:''; width:3px; height:12px;
+  background:var(--cyan); border-radius:2px;
+}
+.count-badge {
+  background:rgba(6,214,214,0.12);
+  border:1px solid rgba(6,214,214,0.3);
+  color:var(--cyan);
+  font-family:var(--mono); font-size:11px; font-weight:600;
+  padding:2px 9px; border-radius:20px;
+}
+
+/* ── EMPTY ── */
+.empty {
+  background:var(--s1); border:1px dashed var(--border2);
+  border-radius:14px; padding:52px 20px;
+  text-align:center; margin-bottom:14px;
+}
+.empty-icon { font-size:42px; display:block; margin-bottom:12px; opacity:0.35; }
+.empty-txt { color:var(--muted2); font-size:14px; }
+.empty-sub { color:var(--muted); font-size:12px; margin-top:5px; }
+
+/* ── ITEM LIST ── */
+.item-list {
+  display:flex; flex-direction:column; gap:7px;
+  max-height:400px; overflow-y:auto;
+  padding-right:4px; margin-bottom:14px;
+  display:none;
+}
+.item-list::-webkit-scrollbar { width:3px; }
+.item-list::-webkit-scrollbar-track { background:transparent; }
+.item-list::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+
+.item {
+  display:flex; align-items:center; gap:10px;
+  background:var(--s2); border:1px solid var(--border);
+  border-radius:10px; padding:11px 14px;
+  animation:slideIn 0.18s ease;
+  transition:border-color 0.2s;
+}
+.item:hover { border-color:var(--border2); }
+@keyframes slideIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+.item.merged { border-color:var(--blue); }
+
+.item-num { font-family:var(--mono); font-size:10px; color:var(--muted); width:18px; text-align:right; flex-shrink:0; }
+.item-bar { font-family:var(--mono); font-size:13px; font-weight:600; color:var(--cyan); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.merged-tag {
+  font-size:9px; font-family:var(--mono);
+  background:rgba(74,158,255,0.12); border:1px solid rgba(74,158,255,0.3);
+  color:var(--blue); padding:1px 6px; border-radius:4px;
+  flex-shrink:0;
+}
+.qty-ctrl { display:flex; align-items:center; gap:5px; flex-shrink:0; }
+.qb {
+  width:24px; height:24px;
+  background:var(--s1); border:1px solid var(--border);
+  border-radius:5px; color:var(--text);
+  font-size:14px; line-height:1;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:all 0.15s;
+}
+.qb:hover { border-color:var(--cyan); color:var(--cyan); }
+.item-qty { font-family:var(--mono); font-size:13px; font-weight:700; min-width:26px; text-align:center; }
+.del-btn {
+  width:27px; height:27px;
+  background:transparent; border:1px solid transparent;
+  border-radius:6px; color:var(--muted);
+  font-size:13px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:all 0.15s; flex-shrink:0;
+}
+.del-btn:hover { border-color:var(--red); color:var(--red); background:rgba(255,61,90,0.08); }
+
+/* ── SUMMARY ── */
+.summary {
+  display:none; gap:0;
+  background:var(--s1); border:1px solid var(--border);
+  border-radius:12px; overflow:hidden;
+  margin-bottom:14px;
+}
+.sum-stat { flex:1; padding:14px 10px; text-align:center; position:relative; }
+.sum-stat+.sum-stat::before {
+  content:''; position:absolute;
+  left:0; top:20%; bottom:20%;
+  width:1px; background:var(--border);
+}
+.sum-val { font-family:var(--mono); font-size:24px; font-weight:700; color:var(--cyan); line-height:1; }
+.sum-lbl { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; margin-top:4px; font-family:var(--mono); }
+
+/* ── BOTTOM ACTIONS ── */
+.actions { display:flex; gap:10px; }
+.clear-btn {
+  padding:0 18px; height:56px;
+  background:transparent; border:1px solid var(--border);
+  border-radius:10px; color:var(--muted2);
+  font-size:13px; cursor:pointer;
+  transition:all 0.2s; white-space:nowrap;
+}
+.clear-btn:hover { border-color:var(--red); color:var(--red); }
+.submit-btn {
+  flex:1; height:56px;
+  background:linear-gradient(135deg, #059f9f 0%, var(--cyan) 50%, #06d680 100%);
+  background-size:200% 100%;
+  background-position:0% 0%;
+  border:none; border-radius:10px;
+  color:var(--bg);
+  font-family:var(--head);
+  font-size:16px; font-weight:800;
+  cursor:pointer; letter-spacing:0.5px;
+  transition:all 0.3s;
+  position:relative; overflow:hidden;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.submit-btn:hover:not(:disabled) {
+  background-position:100% 0%;
+  transform:translateY(-2px);
+  box-shadow:0 8px 28px rgba(6,214,214,0.3);
+}
+.submit-btn:active:not(:disabled) { transform:translateY(0); }
+.submit-btn:disabled { opacity:0.3; cursor:not-allowed; }
+.spin {
+  display:none; width:18px; height:18px;
+  border:2px solid rgba(0,0,0,0.2);
+  border-top-color:var(--bg);
+  border-radius:50%;
+  animation:spin 0.65s linear infinite;
+}
+@keyframes spin { to{transform:rotate(360deg)} }
+.submit-btn.loading .btn-label { display:none; }
+.submit-btn.loading .spin { display:block; }
+.submit-btn.loading { cursor:not-allowed; }
+
+/* ── TOAST ── */
+.toasts {
+  position:fixed; bottom:20px; left:50%;
+  transform:translateX(-50%);
+  z-index:999; display:flex; flex-direction:column; gap:8px; align-items:center;
+  pointer-events:none;
+}
+.toast {
+  padding:11px 18px; border-radius:9px;
+  font-size:13px; font-weight:500;
+  font-family:var(--body);
+  animation:toastPop 0.25s ease forwards;
+  max-width:340px; text-align:center;
+  backdrop-filter:blur(12px);
+  pointer-events:all;
+}
+.toast.ok  { background:rgba(0,230,118,0.1); border:1px solid var(--green); color:var(--green); }
+.toast.err { background:rgba(255,61,90,0.1); border:1px solid var(--red); color:var(--red); }
+.toast.inf { background:rgba(6,214,214,0.08); border:1px solid rgba(6,214,214,0.4); color:var(--cyan); }
+.toast.wrn { background:rgba(255,152,0,0.1); border:1px solid var(--orange); color:var(--orange); }
+@keyframes toastPop { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── SETUP OVERLAY ── */
+.overlay {
+  display:none;
+  position:fixed; inset:0; z-index:100;
+  background:rgba(6,10,18,0.85);
+  backdrop-filter:blur(8px);
+  align-items:center; justify-content:center;
+  padding:20px;
+}
+.overlay.show { display:flex; }
+.modal {
+  background:var(--s1); border:1px solid var(--border2);
+  border-radius:18px; padding:28px; width:100%; max-width:520px;
+  animation:modalIn 0.25s ease;
+}
+@keyframes modalIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+.modal h2 {
+  font-family:var(--head); font-size:20px; font-weight:800;
+  margin-bottom:6px;
+}
+.modal p { font-size:13px; color:var(--muted2); margin-bottom:20px; line-height:1.6; }
+.modal-grid { display:grid; gap:12px; }
+.modal-grid .g2 { grid-template-columns:1fr 1fr; display:grid; gap:12px; }
+
+/* Connection status banner */
+.conn-banner {
+  display:none; padding:10px 16px;
+  border-radius:9px; font-size:13px;
+  margin-top:12px;
+  font-family:var(--mono);
+}
+.conn-banner.ok { background:rgba(0,230,118,0.08); border:1px solid var(--green); color:var(--green); display:block; }
+.conn-banner.err { background:rgba(255,61,90,0.08); border:1px solid var(--red); color:var(--red); display:block; }
+
+/* ── RESPONSIVE ── */
+@media(max-width:480px) {
+  .grid2 { grid-template-columns:1fr; }
+  .session-row { grid-template-columns:1fr; }
+}
 </style>
 </head>
 <body>
 
-<div class="wrap">
-  <div class="topbar">
-    <div class="brand">
-      <div class="brand-logo">📦</div>
-      <div>
-        <div class="brand-name">UBEST SCANNER</div>
-        <div class="brand-sub">AUTO-CONNECTED</div>
-      </div>
-    </div>
-    <div class="status-pill connected" id="statusPill">
-      <span class="status-dot"></span>
-      <span id="statusText">CONNECTED</span>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="field">
-      <label>Branch</label>
-      <select id="branchSel">
-        <option value="Main Warehouse">Main Warehouse</option>
-        <option value="Branch A">Branch A</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>Supplier</label>
-      <input type="text" id="supplierIn" placeholder="Enter Supplier Name" style="width:100%; background:var(--s2); border:1px solid var(--border); border-radius:8px; padding:11px 13px; color:var(--text); font-family:var(--mono); font-size:13px;">
-    </div>
-  </div>
-
-  <div class="scanner-card">
-    <div class="scan-row">
-      <div style="flex:1">
-        <div class="field">
-          <label>Scan Barcode</label>
-          <input type="text" id="barcodeIn" placeholder="Scan here..." autofocus />
-        </div>
-      </div>
-      <button class="add-btn" onclick="addItem()">＋ Add</button>
-    </div>
-  </div>
-
-  <div class="item-list" id="itemList"></div>
-
-  <button class="submit-btn" id="submitBtn" onclick="submitAll()" disabled>🚀 Submit to Lark Base</button>
+<!-- Setup Overlay -->
+<div class="overlay show" id="setupOverlay">
+  <div class="modal">
+    <h2>🔧 Connect to Lark Base</h2>
+    <p>Enter your Lark Base details to connect the scanner. Your credentials are saved locally in your browser.</p>
+    <div class="modal-grid">
+      <div class="g2">
+        <div class="field">
+          <label>App ID</label>
+          <input id="s_appId" type="text" placeholder="cli_xxxxxxxx" value="cli_a92bb5e5aea25e19" />
+        </div>
+        <div class="field">
+          <label>App Secret</label>
+          <input id="s_appSecret" type="password" placeholder="Your App Secret" value="PjRUNkJoakbhvyLsDGUnddLhSB6Bc5KH" />
+        </div>
+      </div>
+      <div class="field">
+        <label>App Token (from Base URL)</label>
+        <input id="s_appToken" type="text" placeholder="bascnXXXXXXXXXXXX" />
+      </div>
+      <div class="field">
+        <label>Table ID</label>
+        <input id="s_tableId" type="text" placeholder="tblXXXXXXXXXXXX" />
+      </div>
+      <div class="g2">
+        <div class="field">
+          <label>Barcode Field</label>
+          <input id="s_barcodeF" type="text" value="Barcode" />
+        </div>
+        <div class="field">
+          <label>Quantity Field</label>
+          <input id="s_qtyF" type="text" value="Quantity" />
+        </div>
+        <div class="field">
+          <label>Branch Field</label>
+          <input id="s_branchF" type="text" value="Branch" />
+        </div>
+        <div class="field">
+          <label>Supplier Field</label>
+          <input id="s_supplierF" type="text" value="Supplier" />
+        </div>
+      </div>
+      <div id="setupBanner" class="conn-banner"></div>
+      <button class="connect-btn" id="connectBtn" onclick="connectLark()">
+        <span id="connectLabel">⚡ Connect &amp; Start Scanning</span>
+        <span class="spin" id="connectSpin"></span>
+      </button>
+    </div>
+  </div>
 </div>
 
+<!-- Main App -->
+<div class="wrap">
+
+  <!-- Top Bar -->
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-logo">📦</div>
+      <div>
+        <div class="brand-name">UBEST SCANNER</div>
+        <div class="brand-sub">BATCH ORDER ENTRY</div>
+      </div>
+    </div>
+    <div class="status-pill" id="statusPill">
+      <span class="status-dot"></span>
+      <span id="statusText">NOT CONNECTED</span>
+    </div>
+  </div>
+
+  <!-- Session -->
+  <div class="card">
+    <div class="card-title">Session Info</div>
+    <div class="session-row">
+      <div class="field">
+        <label>Branch</label>
+        <select id="branchSel">
+          <option value="">— Select Branch —</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Supplier</label>
+        <select id="supplierSel">
+          <option value="">— Select Supplier —</option>
+        </select>
+      </div>
+    </div>
+    <div style="text-align:right; margin-top:8px;">
+      <button onclick="showSetup()" style="background:transparent;border:none;color:var(--muted2);font-size:12px;cursor:pointer;text-decoration:underline;font-family:var(--mono);">⚙ Change Connection</button>
+    </div>
+  </div>
+
+  <!-- Scanner -->
+  <div class="scanner-card" id="scanCard">
+    <div class="card-title">Barcode Scanner</div>
+    <div class="scan-row">
+      <div class="scan-barcode-wrap">
+        <div class="field" style="margin:0">
+          <label>Barcode / QR Code</label>
+          <input type="text" id="barcodeIn" class="field input barcode-in"
+            placeholder="Scan or type here..."
+            autocomplete="off" autocorrect="off" spellcheck="false" />
+        </div>
+      </div>
+      <div class="scan-qty-wrap">
+        <div class="field" style="margin:0">
+          <label>Qty</label>
+          <input type="number" id="qtyIn" value="1" min="1" class="qty-in" style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:11px 13px;color:var(--text);font-family:var(--mono);font-size:16px;outline:none;width:100%;height:50px;text-align:center;" />
+        </div>
+      </div>
+      <button class="add-btn" onclick="addItem()">＋ Add</button>
+    </div>
+    <div class="hint-row">
+      <span class="hint-dot"></span>
+      Press Enter or click Add after each scan — duplicates merge automatically
+    </div>
+
+    <!-- Camera -->
+    <div class="cam-section" id="camSection">
+      <div id="vid-wrap">
+        <video id="vid" autoplay muted playsinline></video>
+        <div class="cam-overlay"><div class="cam-frame"><div class="cam-beam"></div></div></div>
+      </div>
+      <button class="cam-close" onclick="stopCam()">✕ Close Camera</button>
+    </div>
+    <button class="cam-open-btn" id="camOpenBtn" onclick="openCam()">📷 Use Camera / Auto Scan</button>
+  </div>
+
+  <!-- List Header -->
+  <div class="list-header">
+    <div class="list-title">Scanned Items</div>
+    <div class="count-badge" id="countBadge">0 items</div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty" id="emptyState">
+    <span class="empty-icon">🔲</span>
+    <div class="empty-txt">No items scanned yet</div>
+    <div class="empty-sub">Start scanning barcodes above — they'll appear here</div>
+  </div>
+
+  <!-- Item List -->
+  <div class="item-list" id="itemList"></div>
+
+  <!-- Summary -->
+  <div class="summary" id="summary" style="display:none;">
+    <div class="sum-stat" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
+      <div class="sum-val" id="sumItems">0</div>
+      <div class="sum-lbl">Rows</div>
+    </div>
+    <div class="sum-stat" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
+      <div class="sum-val" id="sumQty">0</div>
+      <div class="sum-lbl">Total Qty</div>
+    </div>
+    <div class="sum-stat" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
+      <div class="sum-val" id="sumUniq">0</div>
+      <div class="sum-lbl">Unique SKUs</div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="actions">
+    <button class="clear-btn" onclick="clearAll()">🗑 Clear</button>
+    <button class="submit-btn" id="submitBtn" onclick="submitAll()" disabled>
+      <span class="btn-label">🚀 Submit All to Lark Base</span>
+      <span class="spin"></span>
+    </button>
+  </div>
+
+</div>
+
+<div class="toasts" id="toasts"></div>
+
 <script>
-// AUTO-CONFIGURED CONSTANTS
-const APP_ID = "cli_a92bb5e5aea25e19";
-const APP_SECRET = "PjRUNkJoakbhvyLsDGUnddLhSB6Bc5KH";
-const APP_TOKEN = "ACLcblLjYa3flwswnRDjRos6pUc";
-const TABLE_ID = "tblrFRw4I8rq9vit";
-
+// ═══════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════
 let items = [];
+let cfg = {
+  appId: 'cli_a92bb5e5aea25e19',
+  appSecret: 'PjRUNkJoakbhvyLsDGUnddLhSB6Bc5KH',
+  appToken: '',
+  tableId: '',
+  barcodeF: 'Barcode',
+  qtyF: 'Quantity',
+  branchF: 'Branch',
+  supplierF: 'Supplier'
+};
+let token = null;
+let tokenExp = 0;
+let camStream = null;
+let camTimer = null;
 
-// ADD ITEM LOGIC
-function addItem() {
-  const input = document.getElementById('barcodeIn');
-  const code = input.value.trim();
-  if (!code) return;
+// Branch & Supplier options — edit these to match your actual data
+const BRANCHES  = ['Main Branch','North Branch','South Branch','Warehouse','Online'];
+const SUPPLIERS = ['Supplier A','Supplier B','Supplier C','Supplier D'];
 
-  const existing = items.find(i => i.barcode === code);
-  if (existing) {
-    existing.qty++;
-  } else {
-    items.push({ barcode: code, qty: 1 });
-  }
-  
-  input.value = '';
-  input.focus();
-  render();
-}
+// ═══════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  loadCfg();
+  populateSelects();
+  render();
 
-// RENDER LIST
-function render() {
-  const list = document.getElementById('itemList');
-  const btn = document.getElementById('submitBtn');
-  btn.disabled = items.length === 0;
-  
-  list.innerHTML = items.map(it => `
-    <div class="item">
-      <span class="item-bar">${it.barcode}</span>
-      <span style="font-weight:bold">x${it.qty}</span>
-    </div>
-  `).join('');
-}
+  document.getElementById('barcodeIn').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); addItem(); }
+  });
 
-// SUBMIT TO LARK
-async function submitAll() {
-  const btn = document.getElementById('submitBtn');
-  btn.innerText = "Sending...";
-  btn.disabled = true;
-
-  try {
-    // 1. Get Token via Proxy
-    const authUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://open.larksuite.com/open-apis/auth/v3/tenant_access_token/internal');
-    const authRes = await fetch(authUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ app_id: APP_ID, app_secret: APP_SECRET })
-    });
-    const authData = await authRes.json();
-    const token = authData.tenant_access_token;
-
-    // 2. Prepare Records
-    const records = items.map(it => ({
-      fields: {
-        "Barcode": it.barcode,
-        "Quantity": it.qty,
-        "Branch": document.getElementById('branchSel').value,
-        "Supplier": document.getElementById('supplierIn').value
-      }
-    }));
-
-    // 3. Batch Create via Proxy
-    const apiTarget = `https://open.larksuite.com/open-apis/bitable/v1/apps/${APP_TOKEN}/tables/${TABLE_ID}/records/batch_create`;
-    const apiUrl = 'https://corsproxy.io/?' + encodeURIComponent(apiTarget);
-
-    const res = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ records })
-    });
-
-    const data = await res.json();
-    if (data.code === 0) {
-      alert("✅ Order Submitted Successfully!");
-      items = [];
-      render();
-    } else {
-      alert("❌ Error: " + data.msg);
-    }
-  } catch (e) {
-    alert("Connection Error. Check your Lark permissions.");
-  } finally {
-    btn.innerText = "🚀 Submit to Lark Base";
-  }
-}
-
-// Support Enter Key
-document.getElementById('barcodeIn').addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') addItem();
+  // If already configured, skip setup
+  if (cfg.appToken && cfg.tableId) {
+    document.getElementById('setupOverlay').classList.remove('show');
+    setStatus('connected', 'CONNECTED');
+  }
 });
+
+function populateSelects() {
+  const bs = document.getElementById('branchSel');
+  const ss = document.getElementById('supplierSel');
+  BRANCHES.forEach(b => {
+    const o = document.createElement('option'); o.value = b; o.textContent = b; bs.appendChild(o);
+  });
+  SUPPLIERS.forEach(s => {
+    const o = document.createElement('option'); o.value = s; o.textContent = s; ss.appendChild(o);
+  });
+}
+
+// ═══════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════
+function loadCfg() {
+  const s = localStorage.getItem('ubest_cfg');
+  if (s) {
+    const saved = JSON.parse(s);
+    cfg = { ...cfg, ...saved };
+  }
+  // Pre-fill modal
+  document.getElementById('s_appId').value      = cfg.appId;
+  document.getElementById('s_appSecret').value  = cfg.appSecret;
+  document.getElementById('s_appToken').value   = cfg.appToken;
+  document.getElementById('s_tableId').value    = cfg.tableId;
+  document.getElementById('s_barcodeF').value   = cfg.barcodeF;
+  document.getElementById('s_qtyF').value       = cfg.qtyF;
+  document.getElementById('s_branchF').value    = cfg.branchF;
+  document.getElementById('s_supplierF').value  = cfg.supplierF;
+}
+
+function saveCfg() {
+  cfg.appId     = document.getElementById('s_appId').value.trim();
+  cfg.appSecret = document.getElementById('s_appSecret').value.trim();
+  cfg.appToken  = document.getElementById('s_appToken').value.trim();
+  cfg.tableId   = document.getElementById('s_tableId').value.trim();
+  cfg.barcodeF  = document.getElementById('s_barcodeF').value.trim() || 'Barcode';
+  cfg.qtyF      = document.getElementById('s_qtyF').value.trim()     || 'Quantity';
+  cfg.branchF   = document.getElementById('s_branchF').value.trim()  || 'Branch';
+  cfg.supplierF = document.getElementById('s_supplierF').value.trim()|| 'Supplier';
+  localStorage.setItem('ubest_cfg', JSON.stringify(cfg));
+}
+
+function showSetup() {
+  loadCfg();
+  document.getElementById('setupBanner').className = 'conn-banner';
+  document.getElementById('setupBanner').textContent = '';
+  document.getElementById('setupOverlay').classList.add('show');
+}
+
+// ═══════════════════════════════════════
+//  LARK AUTH — Tenant Access Token
+//  NOTE: Lark's auth endpoint blocks CORS.
+//  Two options built in:
+//   1. Direct (works if Lark allows it or you're on same domain)
+//   2. Via a simple CORS proxy you can self-host (see bottom of file)
+// ═══════════════════════════════════════
+async function getToken() {
+  if (token && Date.now() < tokenExp - 60000) return token;
+
+  // Try direct first (works in Lark mini-apps / same origin)
+  try {
+    const res = await fetch('https://open.larksuite.com/open-apis/auth/v3/tenant_access_token/internal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ app_id: cfg.appId, app_secret: cfg.appSecret })
+    });
+    const data = await res.json();
+    if (data.code === 0) {
+      token = data.tenant_access_token;
+      tokenExp = Date.now() + (data.expire * 1000);
+      return token;
+    }
+    throw new Error(data.msg);
+  } catch(e) {
+    // CORS blocked — try proxy
+    const proxyUrl = localStorage.getItem('ubest_proxy') || '';
+    if (proxyUrl) {
+      const res = await fetch(proxyUrl + '/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ app_id: cfg.appId, app_secret: cfg.appSecret })
+      });
+      const data = await res.json();
+      if (data.tenant_access_token) {
+        token = data.tenant_access_token;
+        tokenExp = Date.now() + (data.expire * 1000);
+        return token;
+      }
+    }
+    throw new Error('Auth failed — CORS blocked. See setup notes.');
+  }
+}
+
+async function connectLark() {
+  const btn = document.getElementById('connectBtn');
+  const spin = document.getElementById('connectSpin');
+  const label = document.getElementById('connectLabel');
+  const banner = document.getElementById('setupBanner');
+
+  if (!document.getElementById('s_appToken').value.trim()) {
+    banner.className = 'conn-banner err';
+    banner.textContent = '⚠ App Token is required — get it from your Base URL';
+    return;
+  }
+  if (!document.getElementById('s_tableId').value.trim()) {
+    banner.className = 'conn-banner err';
+    banner.textContent = '⚠ Table ID is required — get it from your Base URL';
+    return;
+  }
+
+  btn.disabled = true;
+  label.style.display = 'none';
+  spin.style.display = 'block';
+  banner.className = 'conn-banner';
+  banner.textContent = '';
+
+  saveCfg();
+  token = null; // force refresh
+
+  try {
+    await getToken();
+    banner.className = 'conn-banner ok';
+    banner.textContent = '✅ Connected successfully!';
+    setStatus('connected', 'CONNECTED');
+    setTimeout(() => {
+      document.getElementById('setupOverlay').classList.remove('show');
+      document.getElementById('barcodeIn').focus();
+    }, 800);
+  } catch(e) {
+    banner.className = 'conn-banner err';
+    banner.textContent = '❌ ' + e.message + ' — Check your App ID & Secret';
+    setStatus('error', 'AUTH FAILED');
+  } finally {
+    btn.disabled = false;
+    label.style.display = '';
+    spin.style.display = 'none';
+  }
+}
+
+function setStatus(type, text) {
+  const pill = document.getElementById('statusPill');
+  const txt  = document.getElementById('statusText');
+  pill.className = 'status-pill ' + (type === 'connected' ? 'connected' : type === 'error' ? 'error' : '');
+  txt.textContent = text;
+}
+
+// ═══════════════════════════════════════
+//  ITEMS
+// ═══════════════════════════════════════
+function addItem() {
+  const el = document.getElementById('barcodeIn');
+  const barcode = el.value.trim();
+  const qty = Math.max(1, parseInt(document.getElementById('qtyIn').value) || 1);
+  if (!barcode) { toast('Enter a barcode first', 'err'); el.focus(); return; }
+
+  const ex = items.find(i => i.barcode === barcode);
+  if (ex) {
+    ex.qty += qty;
+    ex.merged = true;
+    toast(`Merged — ${barcode} → qty now ${ex.qty}`, 'wrn');
+  } else {
+    items.push({ id: Date.now(), barcode, qty, merged: false });
+    toast(`Added: ${barcode}`, 'ok');
+  }
+
+  el.value = '';
+  document.getElementById('qtyIn').value = 1;
+  el.focus();
+
+  document.getElementById('scanCard').classList.add('scanning');
+  setTimeout(() => document.getElementById('scanCard').classList.remove('scanning'), 600);
+
+  render();
+}
+
+function removeItem(id) {
+  items = items.filter(i => i.id !== id);
+  render();
+}
+
+function chQty(id, d) {
+  const it = items.find(i => i.id === id);
+  if (it) { it.qty = Math.max(1, it.qty + d); render(); }
+}
+
+function clearAll() {
+  if (!items.length) return;
+  if (!confirm(`Clear all ${items.length} item${items.length>1?'s':''}?`)) return;
+  items = [];
+  render();
+  toast('Cleared', 'inf');
+}
+
+// ═══════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════
+function render() {
+  const list    = document.getElementById('itemList');
+  const empty   = document.getElementById('emptyState');
+  const summary = document.getElementById('summary');
+  const subBtn  = document.getElementById('submitBtn');
+  const badge   = document.getElementById('countBadge');
+
+  badge.textContent = `${items.length} item${items.length!==1?'s':''}`;
+
+  if (!items.length) {
+    list.style.display = 'none';
+    empty.style.display = 'block';
+    summary.style.display = 'none';
+    subBtn.disabled = true;
+    return;
+  }
+
+  empty.style.display = 'none';
+  list.style.display = 'flex';
+  summary.style.display = 'flex';
+  subBtn.disabled = false;
+
+  const tQty  = items.reduce((s,i) => s+i.qty, 0);
+  const uSkus = new Set(items.map(i => i.barcode)).size;
+  document.getElementById('sumItems').textContent = items.length;
+  document.getElementById('sumQty').textContent   = tQty;
+  document.getElementById('sumUniq').textContent  = uSkus;
+
+  list.innerHTML = items.map((it, idx) => `
+    <div class="item${it.merged?' merged':''}" id="row-${it.id}">
+      <span class="item-num">${idx+1}</span>
+      <span class="item-bar">${esc(it.barcode)}</span>
+      ${it.merged ? '<span class="merged-tag">+MERGED</span>' : ''}
+      <div class="qty-ctrl">
+        <button class="qb" onclick="chQty(${it.id},-1)">−</button>
+        <span class="item-qty">${it.qty}</span>
+        <button class="qb" onclick="chQty(${it.id},1)">+</button>
+      </div>
+      <button class="del-btn" onclick="removeItem(${it.id})" title="Remove">✕</button>
+    </div>
+  `).join('');
+}
+
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ═══════════════════════════════════════
+//  SUBMIT
+// ═══════════════════════════════════════
+async function submitAll() {
+  if (!items.length) return;
+  if (!cfg.appToken || !cfg.tableId) {
+    toast('Configure Base connection first', 'err');
+    showSetup(); return;
+  }
+
+  const branch   = document.getElementById('branchSel').value;
+  const supplier = document.getElementById('supplierSel').value;
+
+  const btn = document.getElementById('submitBtn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+  setStatus('connected', 'SUBMITTING…');
+
+  try {
+    const tok = await getToken();
+
+    const records = items.map(it => ({
+      fields: {
+        [cfg.barcodeF]: it.barcode,
+        [cfg.qtyF]: it.qty,
+        ...(branch   ? {[cfg.branchF]:   branch}   : {}),
+        ...(supplier ? {[cfg.supplierF]: supplier} : {})
+      }
+    }));
+
+    // Chunk into batches of 500 (Lark limit)
+    let created = 0;
+    for (let i = 0; i < records.length; i += 500) {
+      const chunk = records.slice(i, i+500);
+      const res = await fetch(
+        `https://open.larksuite.com/open-apis/bitable/v1/apps/${cfg.appToken}/tables/${cfg.tableId}/records/batch_create`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${tok}`
+          },
+          body: JSON.stringify({ records: chunk })
+        }
+      );
+      const data = await res.json();
+      if (data.code !== 0) throw new Error(data.msg || `API error code ${data.code}`);
+      created += data.data?.records?.length || chunk.length;
+    }
+
+    toast(`✅ ${created} record${created!==1?'s':''} added to Lark Base!`, 'ok');
+    setStatus('connected', 'CONNECTED');
+    items = [];
+    render();
+
+  } catch(e) {
+    toast('❌ ' + e.message, 'err');
+    setStatus('error', 'SUBMIT FAILED');
+    console.error(e);
+  } finally {
+    btn.classList.remove('loading');
+    btn.disabled = items.length === 0;
+  }
+}
+
+// ═══════════════════════════════════════
+//  CAMERA SCANNING
+// ═══════════════════════════════════════
+async function openCam() {
+  if (!('BarcodeDetector' in window)) {
+    toast('Camera scanning needs Chrome on Android or Desktop Chrome 88+', 'err');
+    return;
+  }
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:'environment' } });
+    document.getElementById('vid').srcObject = camStream;
+    document.getElementById('camSection').classList.add('show');
+    document.getElementById('camOpenBtn').style.display = 'none';
+
+    const det = new BarcodeDetector({ formats:['qr_code','code_128','ean_13','ean_8','code_39','upc_a','upc_e','code_93'] });
+    let last = '', lastT = 0;
+    camTimer = setInterval(async () => {
+      const vid = document.getElementById('vid');
+      if (vid.readyState !== vid.HAVE_ENOUGH_DATA) return;
+      try {
+        const bcs = await det.detect(vid);
+        if (bcs.length) {
+          const v = bcs[0].rawValue, now = Date.now();
+          if (v !== last || now - lastT > 2500) {
+            last = v; lastT = now;
+            document.getElementById('barcodeIn').value = v;
+            addItem();
+          }
+        }
+      } catch(e){}
+    }, 400);
+  } catch(e) {
+    toast('Camera access denied', 'err');
+  }
+}
+
+function stopCam() {
+  if (camStream) { camStream.getTracks().forEach(t=>t.stop()); camStream = null; }
+  if (camTimer)  { clearInterval(camTimer); camTimer = null; }
+  document.getElementById('camSection').classList.remove('show');
+  document.getElementById('camOpenBtn').style.display = '';
+}
+
+// ═══════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════
+function toast(msg, type='inf') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.style.opacity = '0', 2500);
+  setTimeout(() => el.remove(), 2800);
+}
 </script>
+
+<!--
+════════════════════════════════════════════════════════
+  HOW TO ADD THIS INTO LARK BASE
+════════════════════════════════════════════════════════
+
+  STEP 1 — Get your App Token & Table ID
+  ────────────────────────────────────────
+  Open your Lark Base. Look at the URL:
+  https://base.larksuite.com/base/[APP_TOKEN]/table/[TABLE_ID]
+  Copy both values into the setup screen.
+
+  STEP 2 — Add as Lark Mini App (Recommended)
+  ─────────────────────────────────────────────
+  1. Go to Lark Open Platform → Your App → Ability → Web App / Mini App
+  2. Upload this HTML file or host it (GitHub Pages, Vercel, etc.)
+  3. Set the URL as the Mini App home page
+  4. Add Base permissions: bitable:app:readonly, bitable:record:write
+  5. Publish and add to your workspace
+
+  STEP 3 — Embed directly in Base (Dashboard widget)
+  ────────────────────────────────────────────────────
+  1. In your Base, click + to add a Dashboard view
+  2. Add an "Embed" or "HTML" widget
+  3. Paste the URL of where you've hosted this file
+
+  CORS NOTE
+  ──────────
+  If you get auth errors, Lark blocks cross-origin auth calls from
+  plain web pages. To fix this, deploy this 3-line Cloudflare Worker:
+
+  // worker.js (deploy at workers.cloudflare.com — free tier)
+  export default {
+    async fetch(req) {
+      const body = await req.json();
+      const r = await fetch('https://open.larksuite.com/open-apis/auth/v3/tenant_access_token/internal', {
+        method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
+      });
+      const data = await r.json();
+      return new Response(JSON.stringify(data), {
+        headers:{ 'Content-Type':'application/json', 'Access-Control-Allow-Origin':'*' }
+      });
+    }
+  }
+
+  Then in browser console run:
+  localStorage.setItem('ubest_proxy', 'https://your-worker.workers.dev')
+
+════════════════════════════════════════════════════════
+-->
 </body>
 </html>
