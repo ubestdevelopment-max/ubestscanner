@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UBEST Inventory Scanner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .scanner-container { max-width: 600px; margin: 0 auto; }
+        .item-row:nth-child(even) { background-color: #f9fafb; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4">
+
+    <div class="scanner-container bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="bg-blue-600 p-4 text-white flex justify-between items-center">
+            <h1 class="font-bold text-lg">UBEST Order Scanner</h1>
+            <button id="configBtn" class="text-xs bg-blue-700 px-2 py-1 rounded opacity-75 hover:opacity-100">⚙️ Config</button>
+        </div>
+
+        <div id="setupView" class="p-6 hidden">
+            <h2 class="font-bold mb-4 border-bottom">Lark Base Configuration</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium">App Token (from URL)</label>
+                    <input type="text" id="appToken" class="w-full border p-2 rounded" placeholder="bascnXXXXXXXX">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Table ID (from URL)</label>
+                    <input type="text" id="tableId" class="w-full border p-2 rounded" placeholder="tblXXXXXXXX">
+                </div>
+                <button id="saveConfig" class="w-full bg-green-600 text-white font-bold py-2 rounded">Connect to Lark</button>
+            </div>
+        </div>
+
+        <div id="appView" class="p-4">
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase">Branch</label>
+                    <select id="branchSelect" class="w-full border p-2 rounded bg-gray-50">
+                        <option>Main Warehouse</option>
+                        <option>Branch A</option>
+                        <option>Branch B</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase">Supplier</label>
+                    <input type="text" id="supplierInput" class="w-full border p-2 rounded bg-gray-50" placeholder="e.g. Supplier Name">
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-sm font-bold mb-1 text-blue-600 text-center">Ready to Scan Barcode...</label>
+                <input type="text" id="barcodeInput" autofocus 
+                    class="w-full border-2 border-blue-400 p-4 rounded-lg text-xl text-center focus:ring-4 focus:ring-blue-200 outline-none" 
+                    placeholder="Click here and Scan">
+                <p class="text-xs text-gray-400 mt-2 text-center">Scanned items will add up in the list below automatically.</p>
+            </div>
+
+            <div class="border rounded-lg overflow-hidden">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-gray-200 text-gray-600">
+                        <tr>
+                            <th class="p-2">Barcode/Item</th>
+                            <th class="p-2 text-center">Qty</th>
+                            <th class="p-2"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemList">
+                        </tbody>
+                </table>
+                <div id="emptyMsg" class="p-8 text-center text-gray-400">No items scanned yet.</div>
+            </div>
+
+            <button id="submitBtn" class="w-full mt-6 bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-transform">
+                🚀 Submit All to Lark Base
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // PRE-LOADED CREDENTIALS
+        const APP_ID = "cli_a92bb5e5aea25e19";
+        const APP_SECRET = "PjRUNkJoakbhvyLsDGUnddLhSB6Bc5KH";
+
+        let scannedItems = {}; // { barcode: quantity }
+        let config = JSON.parse(localStorage.getItem('lark_scanner_config')) || null;
+
+        const barcodeInput = document.getElementById('barcodeInput');
+        const itemList = document.getElementById('itemList');
+        const emptyMsg = document.getElementById('emptyMsg');
+
+        // Check for config
+        if(!config) {
+            document.getElementById('appView').classList.add('hidden');
+            document.getElementById('setupView').classList.remove('hidden');
+        }
+
+        // --- AUTH & API FUNCTIONS ---
+        async function getAccessToken() {
+            // Note: In a browser, Lark's auth API may require a CORS proxy or Lark's App Dashboard setup.
+            // Using a direct fetch for internal testing.
+            try {
+                const response = await fetch('https://open.larksuite.com/open-apis/auth/v3/tenant_access_token/internal', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ app_id: APP_ID, app_secret: APP_SECRET })
+                });
+                const data = await response.json();
+                return data.tenant_access_token;
+            } catch (e) {
+                alert("Auth Error: Make sure your Lark App settings allow requests from this domain.");
+                return null;
+            }
+        }
+
+        // --- SCAN LOGIC ---
+        barcodeInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const code = barcodeInput.value.trim();
+                if (code) {
+                    scannedItems[code] = (scannedItems[code] || 0) + 1;
+                    renderList();
+                    barcodeInput.value = '';
+                }
+            }
+        });
+
+        function renderList() {
+            const keys = Object.keys(scannedItems);
+            emptyMsg.style.display = keys.length ? 'none' : 'block';
+            itemList.innerHTML = keys.map(code => `
+                <tr class="item-row border-b">
+                    <td class="p-2 font-mono">${code}</td>
+                    <td class="p-2 text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="updateQty('${code}', -1)" class="w-6 h-6 bg-gray-200 rounded">-</button>
+                            <span class="font-bold w-8">${scannedItems[code]}</span>
+                            <button onclick="updateQty('${code}', 1)" class="w-6 h-6 bg-gray-200 rounded">+</button>
+                        </div>
+                    </td>
+                    <td class="p-2 text-right">
+                        <button onclick="removeItem('${code}')" class="text-red-500 text-lg">×</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        window.updateQty = (code, delta) => {
+            scannedItems[code] += delta;
+            if (scannedItems[code] <= 0) delete scannedItems[code];
+            renderList();
+        };
+
+        window.removeItem = (code) => {
+            delete scannedItems[code];
+            renderList();
+        };
+
+        // --- SUBMISSION ---
+        document.getElementById('submitBtn').onclick = async () => {
+            const keys = Object.keys(scannedItems);
+            if (!keys.length) return alert("Please scan items first!");
+            
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+
+            const token = await getAccessToken();
+            if (!token) {
+                btn.disabled = false;
+                btn.innerText = "🚀 Submit All to Lark Base";
+                return;
+            }
+
+            // Create batch records array
+            const records = keys.map(code => ({
+                fields: {
+                    "Barcode": code, // Match these names exactly to your Lark column names
+                    "Quantity": scannedItems[code],
+                    "Branch": document.getElementById('branchSelect').value,
+                    "Supplier": document.getElementById('supplierInput').value,
+                    "Scan Date": Date.now()
+                }
+            }));
+
+            try {
+                const res = await fetch(`https://open.larksuite.com/open-apis/bitable/v1/apps/${config.appToken}/tables/${config.tableId}/records/batch_create`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ records })
+                });
+                
+                const data = await res.json();
+                if (data.code === 0) {
+                    alert("✅ Successfully sent to Lark!");
+                    scannedItems = {};
+                    renderList();
+                } else {
+                    alert("❌ Error: " + data.msg);
+                }
+            } catch (err) {
+                alert("Failed to connect to Lark.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "🚀 Submit All to Lark Base";
+            }
+        };
+
+        // --- CONFIG ---
+        document.getElementById('saveConfig').onclick = () => {
+            const appToken = document.getElementById('appToken').value.trim();
+            const tableId = document.getElementById('tableId').value.trim();
+            if (!appToken || !tableId) return alert("Please fill all fields");
+            
+            config = { appToken, tableId };
+            localStorage.setItem('lark_scanner_config', JSON.stringify(config));
+            location.reload();
+        };
+
+        document.getElementById('configBtn').onclick = () => {
+            localStorage.removeItem('lark_scanner_config');
+            location.reload();
+        };
+    </script>
+</body>
+</html>
