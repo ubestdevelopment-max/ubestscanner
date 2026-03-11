@@ -2,1133 +2,764 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>UBEST Order Scanner</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intelligent Replenishment System — 5-Layer Guide</title>
 <style>
-:root {
-  --bg: #060a12;
-  --s1: #0d1420;
-  --s2: #131d2e;
-  --s3: #1a2640;
-  --border: #1e2d45;
-  --border2: #263850;
-  --cyan: #06d6d6;
-  --cyan2: #04a8a8;
-  --green: #00e676;
-  --red: #ff3d5a;
-  --orange: #ff9800;
-  --blue: #4a9eff;
-  --text: #dde8f5;
-  --muted: #4d6480;
-  --muted2: #7a95b0;
-  --mono: 'IBM Plex Mono', monospace;
-  --head: 'Syne', sans-serif;
-  --body: 'Outfit', sans-serif;
-}
-* { margin:0; padding:0; box-sizing:border-box; }
-html { scroll-behavior: smooth; }
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--body);
-  min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
-}
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
 
-/* Grid bg */
-body::before {
-  content:'';
-  position:fixed; inset:0;
-  background-image:
-    linear-gradient(rgba(6,214,214,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(6,214,214,0.03) 1px, transparent 1px);
-  background-size: 40px 40px;
-  pointer-events:none; z-index:0;
-}
-body::after {
-  content:'';
-  position:fixed;
-  top:-300px; right:-300px;
-  width:800px; height:800px;
-  background: radial-gradient(circle, rgba(6,214,214,0.04) 0%, transparent 65%);
-  pointer-events:none; z-index:0;
-}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-.wrap {
-  position:relative; z-index:1;
-  max-width:680px;
-  margin:0 auto;
-  padding:20px 16px 100px;
-}
+  :root {
+    --bg: #07080D;
+    --surface: #0F1018;
+    --border: #1C1D2A;
+    --text: #E8E2D5;
+    --muted: #6B6880;
+    --l1: #4A90D9; --l1bg: #0D1E35;
+    --l2: #48BB78; --l2bg: #0B1F14;
+    --l3: #B794F4; --l3bg: #1A0F2E;
+    --l4: #F6AD55; --l4bg: #271A08;
+    --l5: #FC8181; --l5bg: #2A0D0D;
+  }
 
-/* ── TOP BAR ── */
-.topbar {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:16px 20px;
-  background: var(--s1);
-  border: 1px solid var(--border);
-  border-radius:14px;
-  margin-bottom:16px;
-}
-.brand { display:flex; align-items:center; gap:10px; }
-.brand-logo {
-  width:38px; height:38px;
-  background: linear-gradient(135deg, var(--cyan), #0a9f9f);
-  border-radius:9px;
-  display:flex; align-items:center; justify-content:center;
-  font-size:18px;
-}
-.brand-name {
-  font-family:var(--head);
-  font-size:17px; font-weight:800;
-  letter-spacing:0.5px;
-}
-.brand-sub { font-size:11px; color:var(--muted); margin-top:1px; font-family:var(--mono); }
-.status-pill {
-  display:flex; align-items:center; gap:6px;
-  padding:6px 12px;
-  border-radius:20px;
-  font-size:11px; font-weight:600;
-  font-family:var(--mono);
-  letter-spacing:0.5px;
-  border: 1px solid var(--border);
-  background: var(--s2);
-  color: var(--muted2);
-  transition: all 0.3s;
-}
-.status-pill.connected { border-color:var(--green); color:var(--green); background:rgba(0,230,118,0.07); }
-.status-pill.error { border-color:var(--red); color:var(--red); background:rgba(255,61,90,0.07); }
-.status-dot { width:7px; height:7px; border-radius:50%; background:currentColor; }
-.status-pill.connected .status-dot { animation: pulse 1.5s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  html, body { height: 100%; overflow: hidden; }
 
-/* ── CARDS ── */
-.card {
-  background: var(--s1);
-  border: 1px solid var(--border);
-  border-radius:14px;
-  padding:20px;
-  margin-bottom:14px;
-}
-.card-title {
-  font-family:var(--mono);
-  font-size:10px; font-weight:600;
-  text-transform:uppercase; letter-spacing:1.5px;
-  color:var(--muted);
-  margin-bottom:14px;
-  display:flex; align-items:center; gap:8px;
-}
-.card-title::before {
-  content:'';
-  width:3px; height:12px;
-  background:var(--cyan);
-  border-radius:2px;
-  display:block;
-}
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
 
-/* ── INPUTS ── */
-.field { margin-bottom:12px; }
-.field:last-child { margin-bottom:0; }
-.field label {
-  display:block;
-  font-size:11px; font-weight:500;
-  color:var(--muted2);
-  text-transform:uppercase; letter-spacing:0.6px;
-  margin-bottom:5px;
-  font-family:var(--mono);
-}
-.field input, .field select {
-  width:100%;
-  background:var(--s2);
-  border:1px solid var(--border);
-  border-radius:8px;
-  padding:11px 13px;
-  color:var(--text);
-  font-family:var(--mono);
-  font-size:13px;
-  outline:none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  -webkit-appearance: none;
-}
-.field input:focus, .field select:focus {
-  border-color:var(--cyan);
-  box-shadow:0 0 0 3px rgba(6,214,214,0.08);
-}
-.field select option { background:var(--s1); }
-.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  #deck {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
 
-/* ── CONNECT BTN ── */
-.connect-btn {
-  width:100%; padding:13px;
-  background:linear-gradient(135deg, var(--cyan), #059f9f);
-  border:none; border-radius:9px;
-  color:var(--bg);
-  font-family:var(--head);
-  font-size:14px; font-weight:700;
-  cursor:pointer;
-  letter-spacing:0.5px;
-  transition:all 0.2s;
-  display:flex; align-items:center; justify-content:center; gap:8px;
-  margin-top:4px;
-}
-.connect-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(6,214,214,0.25); }
-.connect-btn:active { transform:translateY(0); }
-.connect-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none; }
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 80px;
+    opacity: 0;
+    transform: translateX(60px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    pointer-events: none;
+  }
+  .slide.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: all;
+  }
+  .slide.exit {
+    opacity: 0;
+    transform: translateX(-60px);
+  }
 
-/* ── SESSION ROW ── */
-.session-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .slide-inner {
+    width: 100%;
+    max-width: 920px;
+  }
 
-/* ── SCANNER ── */
-.scanner-card {
-  background:var(--s1);
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:20px;
-  margin-bottom:14px;
-  position:relative;
-  overflow:hidden;
-  transition:border-color 0.3s;
-}
-.scanner-card.scanning { border-color:var(--cyan); }
-.scanner-card.scanning::after {
-  content:'';
-  position:absolute;
-  top:0; left:0; right:0;
-  height:2px;
-  background:linear-gradient(90deg, transparent, var(--cyan), transparent);
-  animation:shimmer 1.5s infinite;
-}
-@keyframes shimmer {
-  0% { opacity:0.3; transform:scaleX(0.3); }
-  50% { opacity:1; transform:scaleX(1); }
-  100% { opacity:0.3; transform:scaleX(0.3); }
-}
+  .cover {
+    background: radial-gradient(ellipse at 30% 50%, #0D1E35 0%, #07080D 60%);
+    text-align: center;
+  }
+  .cover .eyebrow {
+    font-size: 11px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+  .cover h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(32px, 5vw, 54px);
+    line-height: 1.15;
+    color: #F0EAD8;
+    margin-bottom: 16px;
+  }
+  .cover h1 em { color: var(--l1); font-style: italic; }
+  .cover .sub {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 480px;
+    margin: 0 auto 48px;
+    line-height: 1.6;
+  }
+  .layer-pills { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .pill {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid;
+  }
 
-.scan-row {
-  display:flex; gap:10px; align-items:flex-end;
-}
-.scan-barcode-wrap { flex:1; }
-.scan-qty-wrap { width:88px; flex-shrink:0; }
-.barcode-in {
-  font-size:15px !important;
-  padding:14px 14px !important;
-  background:var(--bg) !important;
-  border-color:var(--cyan) !important;
-  letter-spacing:1px;
-}
-.barcode-in::placeholder { color:var(--muted); font-size:12px; letter-spacing:0; }
-.qty-in { text-align:center; font-size:16px !important; height:50px; }
+  .overview-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-top: 32px;
+  }
+  .ov-card {
+    border-radius: 10px;
+    padding: 20px 14px;
+    border: 1px solid;
+    text-align: center;
+  }
+  .ov-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+  .ov-title { font-size: 12px; font-weight: 600; line-height: 1.4; margin-bottom: 6px; }
+  .ov-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
 
-.add-btn {
-  height:50px; padding:0 18px;
-  background:var(--cyan);
-  border:none; border-radius:8px;
-  color:var(--bg);
-  font-family:var(--head);
-  font-size:14px; font-weight:700;
-  cursor:pointer;
-  white-space:nowrap; flex-shrink:0;
-  transition:all 0.15s;
-}
-.add-btn:hover { background:#08f0f0; transform:translateY(-1px); }
-.add-btn:active { transform:translateY(0); }
+  .layer-header { display: flex; align-items: center; gap: 18px; margin-bottom: 28px; }
+  .layer-badge {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    border: 2px solid;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .layer-title h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(20px, 3vw, 28px);
+    color: #F0EAD8;
+    margin-bottom: 4px;
+  }
+  .layer-title p { font-size: 13px; font-style: italic; }
 
-.hint-row {
-  display:flex; align-items:center; gap:8px;
-  margin-top:10px;
-  font-size:11px; color:var(--muted2);
-  font-family:var(--mono);
-}
-.hint-dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:pulse 1.5s infinite; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
 
-/* Camera */
-.cam-section { display:none; margin-top:14px; }
-.cam-section.show { display:block; }
-#vid-wrap {
-  border-radius:10px; overflow:hidden;
-  background:#000; aspect-ratio:16/9; position:relative;
-}
-#vid { width:100%; height:100%; object-fit:cover; display:block; }
-.cam-overlay {
-  position:absolute; inset:0;
-  display:flex; align-items:center; justify-content:center;
-  pointer-events:none;
-}
-.cam-frame {
-  width:55%; max-width:220px; height:100px;
-  border:2px solid var(--cyan); border-radius:8px;
-  position:relative;
-  box-shadow:0 0 0 9999px rgba(0,0,0,0.45);
-}
-.cam-beam {
-  position:absolute;
-  top:0; left:0; right:0;
-  height:2px; background:var(--cyan);
-  box-shadow:0 0 8px var(--cyan);
-  animation:beam 1.8s ease-in-out infinite;
-}
-@keyframes beam { 0%{top:0} 100%{top:calc(100% - 2px)} }
-.cam-close {
-  width:100%; margin-top:8px;
-  padding:9px;
-  background:transparent;
-  border:1px solid var(--border);
-  border-radius:8px;
-  color:var(--muted2); font-size:12px;
-  cursor:pointer;
-  transition:all 0.2s;
-}
-.cam-close:hover { border-color:var(--red); color:var(--red); }
-.cam-open-btn {
-  width:100%; margin-top:12px;
-  padding:9px;
-  background:transparent;
-  border:1px solid var(--border);
-  border-radius:8px;
-  color:var(--muted2); font-size:12px;
-  cursor:pointer;
-  transition:all 0.2s;
-}
-.cam-open-btn:hover { border-color:var(--cyan); color:var(--cyan); }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .card-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
 
-/* ── LIST HEADER ── */
-.list-header {
-  display:flex; justify-content:space-between; align-items:center;
-  margin-bottom:10px;
-}
-.list-title {
-  font-family:var(--mono);
-  font-size:10px; font-weight:600;
-  text-transform:uppercase; letter-spacing:1.5px;
-  color:var(--muted);
-  display:flex; align-items:center; gap:8px;
-}
-.list-title::before {
-  content:''; width:3px; height:12px;
-  background:var(--cyan); border-radius:2px;
-}
-.count-badge {
-  background:rgba(6,214,214,0.12);
-  border:1px solid rgba(6,214,214,0.3);
-  color:var(--cyan);
-  font-family:var(--mono); font-size:11px; font-weight:600;
-  padding:2px 9px; border-radius:20px;
-}
+  .mechanics-list { display: flex; flex-direction: column; gap: 10px; }
+  .mechanic { display: flex; gap: 12px; align-items: flex-start; }
+  .mechanic-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 7px; flex-shrink: 0; }
+  .mechanic-term { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+  .mechanic-detail { font-size: 12px; color: #AAA; line-height: 1.5; }
 
-/* ── EMPTY ── */
-.empty {
-  background:var(--s1); border:1px dashed var(--border2);
-  border-radius:14px; padding:52px 20px;
-  text-align:center; margin-bottom:14px;
-}
-.empty-icon { font-size:42px; display:block; margin-bottom:12px; opacity:0.35; }
-.empty-txt { color:var(--muted2); font-size:14px; }
-.empty-sub { color:var(--muted); font-size:12px; margin-top:5px; }
+  .example-steps { display: flex; flex-direction: column; gap: 10px; }
+  .step { display: flex; gap: 12px; align-items: flex-start; }
+  .step-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 1px solid;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .step-label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+  .step-val { font-size: 12px; color: #B8B0A0; line-height: 1.5; }
+  .step-val.highlight { font-weight: 600; }
 
-/* ── ITEM LIST ── */
-.item-list {
-  display:flex; flex-direction:column; gap:7px;
-  max-height:400px; overflow-y:auto;
-  padding-right:4px; margin-bottom:14px;
-  display:none;
-}
-.item-list::-webkit-scrollbar { width:3px; }
-.item-list::-webkit-scrollbar-track { background:transparent; }
-.item-list::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+  .matrix-wrap { overflow-x: auto; margin-top: 12px; }
+  table { border-collapse: collapse; width: 100%; font-size: 12px; }
+  td { padding: 9px 12px; border: 1px solid var(--border); text-align: center; background: var(--surface); color: #B8B0A0; }
+  td.header-cell { background: #13131C; font-weight: 600; font-size: 11px; letter-spacing: 1px; }
+  td.warn { color: #FC8181; }
 
-.item {
-  display:flex; align-items:center; gap:10px;
-  background:var(--s2); border:1px solid var(--border);
-  border-radius:10px; padding:11px 14px;
-  animation:slideIn 0.18s ease;
-  transition:border-color 0.2s;
-}
-.item:hover { border-color:var(--border2); }
-@keyframes slideIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
-.item.merged { border-color:var(--blue); }
+  .formula-box {
+    background: #0A0A12;
+    border: 1px solid #2A2A3A;
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: #E8E2D5;
+    margin-bottom: 14px;
+    letter-spacing: 0.5px;
+  }
 
-.item-num { font-family:var(--mono); font-size:10px; color:var(--muted); width:18px; text-align:right; flex-shrink:0; }
-.item-bar { font-family:var(--mono); font-size:13px; font-weight:600; color:var(--cyan); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.merged-tag {
-  font-size:9px; font-family:var(--mono);
-  background:rgba(74,158,255,0.12); border:1px solid rgba(74,158,255,0.3);
-  color:var(--blue); padding:1px 6px; border-radius:4px;
-  flex-shrink:0;
-}
-.qty-ctrl { display:flex; align-items:center; gap:5px; flex-shrink:0; }
-.qb {
-  width:24px; height:24px;
-  background:var(--s1); border:1px solid var(--border);
-  border-radius:5px; color:var(--text);
-  font-size:14px; line-height:1;
-  cursor:pointer; display:flex; align-items:center; justify-content:center;
-  transition:all 0.15s;
-}
-.qb:hover { border-color:var(--cyan); color:var(--cyan); }
-.item-qty { font-family:var(--mono); font-size:13px; font-weight:700; min-width:26px; text-align:center; }
-.del-btn {
-  width:27px; height:27px;
-  background:transparent; border:1px solid transparent;
-  border-radius:6px; color:var(--muted);
-  font-size:13px; cursor:pointer;
-  display:flex; align-items:center; justify-content:center;
-  transition:all 0.15s; flex-shrink:0;
-}
-.del-btn:hover { border-color:var(--red); color:var(--red); background:rgba(255,61,90,0.08); }
+  .breaker-levels { display: flex; flex-direction: column; gap: 10px; }
+  .breaker { display: flex; gap: 14px; align-items: flex-start; padding: 12px 16px; border-radius: 8px; border: 1px solid; }
+  .breaker-icon { font-size: 18px; flex-shrink: 0; }
+  .breaker-title { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+  .breaker-desc { font-size: 12px; color: var(--muted); line-height: 1.4; }
 
-/* ── SUMMARY ── */
-.summary {
-  display:none; gap:0;
-  background:var(--s1); border:1px solid var(--border);
-  border-radius:12px; overflow:hidden;
-  margin-bottom:14px;
-}
-.sum-stat { flex:1; padding:14px 10px; text-align:center; position:relative; }
-.sum-stat+.sum-stat::before {
-  content:''; position:absolute;
-  left:0; top:20%; bottom:20%;
-  width:1px; background:var(--border);
-}
-.sum-val { font-family:var(--mono); font-size:24px; font-weight:700; color:var(--cyan); line-height:1; }
-.sum-lbl { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; margin-top:4px; font-family:var(--mono); }
+  .summary-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 28px; }
+  .summary-table th {
+    text-align: left; font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--muted); padding: 0 16px 12px; border-bottom: 1px solid var(--border);
+  }
+  .summary-table td {
+    padding: 14px 16px; border-bottom: 1px solid var(--border);
+    background: none; text-align: left; color: #C8C0B0;
+    border-left: none; border-right: none; border-top: none;
+  }
+  .summary-table td:first-child { width: 36px; text-align: center; }
+  .summary-table td.bold { font-weight: 600; color: #E8E2D5; font-size: 12px; }
+  .summary-table tr:last-child td { border-bottom: none; }
 
-/* ── BOTTOM ACTIONS ── */
-.actions { display:flex; gap:10px; }
-.clear-btn {
-  padding:0 18px; height:56px;
-  background:transparent; border:1px solid var(--border);
-  border-radius:10px; color:var(--muted2);
-  font-size:13px; cursor:pointer;
-  transition:all 0.2s; white-space:nowrap;
-}
-.clear-btn:hover { border-color:var(--red); color:var(--red); }
-.submit-btn {
-  flex:1; height:56px;
-  background:linear-gradient(135deg, #059f9f 0%, var(--cyan) 50%, #06d680 100%);
-  background-size:200% 100%;
-  background-position:0% 0%;
-  border:none; border-radius:10px;
-  color:var(--bg);
-  font-family:var(--head);
-  font-size:16px; font-weight:800;
-  cursor:pointer; letter-spacing:0.5px;
-  transition:all 0.3s;
-  position:relative; overflow:hidden;
-  display:flex; align-items:center; justify-content:center; gap:8px;
-}
-.submit-btn:hover:not(:disabled) {
-  background-position:100% 0%;
-  transform:translateY(-2px);
-  box-shadow:0 8px 28px rgba(6,214,214,0.3);
-}
-.submit-btn:active:not(:disabled) { transform:translateY(0); }
-.submit-btn:disabled { opacity:0.3; cursor:not-allowed; }
-.spin {
-  display:none; width:18px; height:18px;
-  border:2px solid rgba(0,0,0,0.2);
-  border-top-color:var(--bg);
-  border-radius:50%;
-  animation:spin 0.65s linear infinite;
-}
-@keyframes spin { to{transform:rotate(360deg)} }
-.submit-btn.loading .btn-label { display:none; }
-.submit-btn.loading .spin { display:block; }
-.submit-btn.loading { cursor:not-allowed; }
+  #nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 40px; border-top: 1px solid var(--border);
+    background: var(--surface); flex-shrink: 0;
+  }
+  .nav-btn {
+    background: none; border: 1px solid var(--border); color: #888;
+    padding: 10px 22px; border-radius: 6px; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; letter-spacing: 0.5px; transition: all 0.2s;
+  }
+  .nav-btn:hover { border-color: #555; color: #ccc; }
+  .nav-btn:disabled { opacity: 0.25; cursor: default; }
+  .nav-btn.primary { background: var(--l1); border-color: var(--l1); color: #000; font-weight: 600; }
+  .nav-btn.primary:hover { opacity: 0.85; }
 
-/* ── TOAST ── */
-.toasts {
-  position:fixed; bottom:20px; left:50%;
-  transform:translateX(-50%);
-  z-index:999; display:flex; flex-direction:column; gap:8px; align-items:center;
-  pointer-events:none;
-}
-.toast {
-  padding:11px 18px; border-radius:9px;
-  font-size:13px; font-weight:500;
-  font-family:var(--body);
-  animation:toastPop 0.25s ease forwards;
-  max-width:340px; text-align:center;
-  backdrop-filter:blur(12px);
-  pointer-events:all;
-}
-.toast.ok  { background:rgba(0,230,118,0.1); border:1px solid var(--green); color:var(--green); }
-.toast.err { background:rgba(255,61,90,0.1); border:1px solid var(--red); color:var(--red); }
-.toast.inf { background:rgba(6,214,214,0.08); border:1px solid rgba(6,214,214,0.4); color:var(--cyan); }
-.toast.wrn { background:rgba(255,152,0,0.1); border:1px solid var(--orange); color:var(--orange); }
-@keyframes toastPop { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  #progress { display: flex; gap: 6px; align-items: center; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); cursor: pointer; transition: all 0.2s; }
+  .dot.active { width: 22px; border-radius: 4px; }
+  #slide-counter { font-size: 12px; color: var(--muted); min-width: 60px; text-align: center; }
 
-/* ── SETUP OVERLAY ── */
-.overlay {
-  display:none;
-  position:fixed; inset:0; z-index:100;
-  background:rgba(6,10,18,0.85);
-  backdrop-filter:blur(8px);
-  align-items:center; justify-content:center;
-  padding:20px;
-}
-.overlay.show { display:flex; }
-.modal {
-  background:var(--s1); border:1px solid var(--border2);
-  border-radius:18px; padding:28px; width:100%; max-width:520px;
-  animation:modalIn 0.25s ease;
-}
-@keyframes modalIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
-.modal h2 {
-  font-family:var(--head); font-size:20px; font-weight:800;
-  margin-bottom:6px;
-}
-.modal p { font-size:13px; color:var(--muted2); margin-bottom:20px; line-height:1.6; }
-.modal-grid { display:grid; gap:12px; }
-.modal-grid .g2 { grid-template-columns:1fr 1fr; display:grid; gap:12px; }
-
-/* Connection status banner */
-.conn-banner {
-  display:none; padding:10px 16px;
-  border-radius:9px; font-size:13px;
-  margin-top:12px;
-  font-family:var(--mono);
-}
-.conn-banner.ok { background:rgba(0,230,118,0.08); border:1px solid var(--green); color:var(--green); display:block; }
-.conn-banner.err { background:rgba(255,61,90,0.08); border:1px solid var(--red); color:var(--red); display:block; }
-
-/* ── RESPONSIVE ── */
-@media(max-width:480px) {
-  .grid2 { grid-template-columns:1fr; }
-  .session-row { grid-template-columns:1fr; }
-}
+  .key-hint {
+    font-size: 11px; color: var(--muted);
+    position: fixed; bottom: 72px; right: 40px; opacity: 0.5; pointer-events: none;
+  }
 </style>
 </head>
 <body>
 
-<!-- Setup Overlay -->
-<div class="overlay show" id="setupOverlay">
-  <div class="modal">
-    <h2>🔧 Connect to Lark Base</h2>
-    <p>Enter your Lark Base details to connect the scanner. Your credentials are saved locally in your browser.</p>
-    <div class="modal-grid">
-      <div class="g2">
-        <div class="field">
-          <label>App ID</label>
-          <input id="s_appId" type="text" placeholder="cli_xxxxxxxx" value="cli_a92bb5e5aea25e19" />
-        </div>
-        <div class="field">
-          <label>App Secret</label>
-          <input id="s_appSecret" type="password" placeholder="Your App Secret" value="PjRUNkJoakbhvyLsDGUnddLhSB6Bc5KH" />
-        </div>
-      </div>
-      <div class="field">
-        <label>App Token (from Base URL)</label>
-        <input id="s_appToken" type="text" placeholder="bascnXXXXXXXXXXXX" />
-      </div>
-      <div class="field">
-        <label>Table ID</label>
-        <input id="s_tableId" type="text" placeholder="tblXXXXXXXXXXXX" />
-      </div>
-      <div class="g2">
-        <div class="field">
-          <label>Barcode Field</label>
-          <input id="s_barcodeF" type="text" value="Barcode" />
-        </div>
-        <div class="field">
-          <label>Quantity Field</label>
-          <input id="s_qtyF" type="text" value="Quantity" />
-        </div>
-        <div class="field">
-          <label>Branch Field</label>
-          <input id="s_branchF" type="text" value="Branch" />
-        </div>
-        <div class="field">
-          <label>Supplier Field</label>
-          <input id="s_supplierF" type="text" value="Supplier" />
-        </div>
-      </div>
-      <div id="setupBanner" class="conn-banner"></div>
-      <button class="connect-btn" id="connectBtn" onclick="connectLark()">
-        <span id="connectLabel">⚡ Connect &amp; Start Scanning</span>
-        <span class="spin" id="connectSpin"></span>
-      </button>
-    </div>
-  </div>
+<div id="deck">
+
+  <!-- SLIDE 0: COVER -->
+  <div class="slide active" data-index="0">
+    <div class="slide-inner cover">
+      <div class="eyebrow">Inventory Management · Decision System</div>
+      <h1>Intelligent<br><em>Replenishment</em><br>System</h1>
+      <p class="sub">A five-layer optimization architecture that automates smarter restocking decisions — from product classification to circuit breaker safeguards.</p>
+      <div class="layer-pills">
+        <span class="pill" style="color:var(--l1);border-color:var(--l1);background:var(--l1bg)">Layer 1 · ABC-XYZ</span>
+        <span class="pill" style="color:var(--l2);border-color:var(--l2);background:var(--l2bg)">Layer 2 · Forecasting</span>
+        <span class="pill" style="color:var(--l3);border-color:var(--l3);background:var(--l3bg)">Layer 3 · Sigmoid</span>
+        <span class="pill" style="color:var(--l4);border-color:var(--l4);background:var(--l4bg)">Layer 4 · Dual-Track</span>
+        <span class="pill" style="color:var(--l5);border-color:var(--l5);background:var(--l5bg)">Layer 5 · Circuit Breaker</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: OVERVIEW -->
+  <div class="slide" data-index="1">
+    <div class="slide-inner">
+      <div class="eyebrow" style="font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">System Overview</div>
+      <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(22px,3vw,32px);color:#F0EAD8;margin-bottom:6px;">Five Layers Working Together</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:0;">Each layer solves a specific problem. Together they form a complete replenishment engine.</p>
+      <div class="overview-grid">
+        <div class="ov-card" style="border-color:var(--l1);background:var(--l1bg)">
+          <div class="ov-num" style="color:var(--l1)">1</div>
+          <div class="ov-title" style="color:var(--l1)">ABC-XYZ Classification</div>
+          <div class="ov-desc">9 product categories, 9 tailored parameter sets</div>
+        </div>
+        <div class="ov-card" style="border-color:var(--l2);background:var(--l2bg)">
+          <div class="ov-num" style="color:var(--l2)">2</div>
+          <div class="ov-title" style="color:var(--l2)">Exponential Smoothing</div>
+          <div class="ov-desc">Demand forecast that adapts to recent trends</div>
+        </div>
+        <div class="ov-card" style="border-color:var(--l3);background:var(--l3bg)">
+          <div class="ov-num" style="color:var(--l3)">3</div>
+          <div class="ov-title" style="color:var(--l3)">Sigmoid Correction</div>
+          <div class="ov-desc">Smooth adjustment factor — no sudden jumps</div>
+        </div>
+        <div class="ov-card" style="border-color:var(--l4);background:var(--l4bg)">
+          <div class="ov-num" style="color:var(--l4)">4</div>
+          <div class="ov-title" style="color:var(--l4)">Dual-Track Delivery</div>
+          <div class="ov-desc">Mon cautious + Thu corrective = 3.5-day risk window</div>
+        </div>
+        <div class="ov-card" style="border-color:var(--l5);background:var(--l5bg)">
+          <div class="ov-num" style="color:var(--l5)">5</div>
+          <div class="ov-title" style="color:var(--l5)">Circuit Breaker</div>
+          <div class="ov-desc">3-level escalation for slow-moving inventory</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 2: LAYER 1 -->
+  <div class="slide" data-index="2">
+    <div class="slide-inner">
+      <div class="layer-header">
+        <div class="layer-badge" style="color:var(--l1);border-color:var(--l1);background:var(--l1bg)">1</div>
+        <div class="layer-title">
+          <h2>ABC-XYZ Two-Dimensional Classification</h2>
+          <p style="color:var(--l1)">Assign every product to one of 9 categories before replenishing</p>
+        </div>
+      </div>
+      <div class="two-col">
+        <div>
+          <div class="card">
+            <div class="card-label">The Two Axes</div>
+            <div class="mechanics-list">
+              <div class="mechanic">
+                <div class="mechanic-dot" style="background:var(--l1)"></div>
+                <div>
+                  <div class="mechanic-term" style="color:var(--l1)">ABC — Sales Volume</div>
+                  <div class="mechanic-detail">A = top 70% · B = 70–90% · C = bottom 10%</div>
+                </div>
+              </div>
+              <div class="mechanic">
+                <div class="mechanic-dot" style="background:var(--l1)"></div>
+                <div>
+                  <div class="mechanic-term" style="color:var(--l1)">XYZ — Demand Stability</div>
+                  <div class="mechanic-detail">X = stable (CV &lt; 0.5) · Y = fluctuating (CV &lt; 1) · Z = volatile (CV ≥ 1)</div>
+                </div>
+              </div>
+              <div class="mechanic">
+                <div class="mechanic-dot" style="background:var(--l1)"></div>
+                <div>
+                  <div class="mechanic-term" style="color:var(--l1)">Result</div>
+                  <div class="mechanic-detail">9 product classes, each with its own replenishment parameters</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="matrix-wrap" style="margin-top:14px;">
+            <table>
+              <tr>
+                <td class="header-cell" style="color:var(--l1)"></td>
+                <td class="header-cell" style="color:var(--l1)">X Stable</td>
+                <td class="header-cell" style="color:var(--l1)">Y Fluctuating</td>
+                <td class="header-cell" style="color:var(--l1)">Z Volatile</td>
+              </tr>
+              <tr>
+                <td class="header-cell" style="color:var(--l1)">A High</td>
+                <td>Auto-replenish</td><td>Monitor closely</td><td>High-freq small batch</td>
+              </tr>
+              <tr>
+                <td class="header-cell" style="color:var(--l1)">B Mid</td>
+                <td>Standard</td><td>Weekly review</td><td>Cautious</td>
+              </tr>
+              <tr>
+                <td class="header-cell" style="color:var(--l1)">C Low</td>
+                <td>Minimal stock</td><td>On-demand</td><td class="warn">⚠️ Eliminate candidate</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label">📋 Example — Classifying "Oat Milk 1L"</div>
+          <div class="example-steps">
+            <div class="step">
+              <div class="step-num" style="color:var(--l1);border-color:var(--l1);background:var(--l1bg)">1</div>
+              <div>
+                <div class="step-label">Sales rank check</div>
+                <div class="step-val">Top 65% of all SKUs by volume → <strong style="color:#ddd">Category A</strong></div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="color:var(--l1);border-color:var(--l1);background:var(--l1bg)">2</div>
+              <div>
+                <div class="step-label">Calculate CV</div>
+                <div class="step-val">CV = 12 ÷ 30 = <strong style="color:#ddd">0.40</strong> → below 0.5 → <strong style="color:#ddd">Category X</strong></div>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="color:var(--l1);border-color:var(--l1);background:var(--l1bg)">3</div>
+              <div>
+                <div class="step-label">Final classification</div>
+                <div class="step-val" style="color:var(--l1);font-weight:600">Class AX → Fully automated replenishment. No manual review needed.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: LAYER 2 -->
+  <div class="slide" data-index="3">
+    <div class="slide-inner">
+      <div class="layer-header">
+        <div class="layer-badge" style="color:var(--l2);border-color:var(--l2);background:var(--l2bg)">2</div>
+        <div class="layer-title">
+          <h2>Exponential Smoothing Forecast</h2>
+          <p style="color:var(--l2)">Weight recent sales more heavily — auto-detect trends without manual judgment</p>
+        </div>
+      </div>
+      <div class="two-col">
+        <div>
+          <div class="card">
+            <div class="card-label">How It Works</div>
+            <div class="formula-box">S<sub>t</sub> = α × Actual<sub>t-1</sub> + (1−α) × S<sub>t-1</sub></div>
+            <div class="mechanics-list">
+              <div class="mechanic">
+                <div class="mechanic-dot" style="background:var(--l2)"></div>
+                <div>
+                  <div class="mechanic-term" style="color:var(--l2)">α = 0.3</div>
+                  <div class="mechanic-detail">30% weight on today's actual sales</div>
+                </div>
+              </div>
+              <div class="mechanic">
+                <div class="mechanic-dot" style="background:var(--l2)"></div>
+                <div>
+                  <div class="mechanic-term" style="color:var(--l2)">Weight Decay</div>
+                  <div class="mechanic-detail">Today 30% → Yesterday 21% → 2 days ago 14.7% → decreasing...</div>
+                </div>
+              </div>
+              <div class="mechanic">
+                <div class="mechanic-dot" style="background:var(--l2)"></div>
+                <div>
+                  <div class="mechanic-term" style="color:var(--l2)">Why Not Simple Average?</div>
+                  <div class="mechanic-detail">A spike last month shouldn't weigh the same as yesterday. Exponential smoothing self-adjusts.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label">📋 Example — Forecasting Day 4</div>
+          <div class="example-steps">
+            <div class="step">
+              <div class="step-num" style="color:var(--l2);border-color:var(--l2);background:var(--l2bg)">1</div>
+              <div><div class="step-label">Day 1</div><div class="step-val">Actual = 50 → S₁ = <strong style="color:#ddd">50</strong></div></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="color:var(--l2);border-color:var(--l2);background:var(--l2bg)">2</div>
+              <div><div class="step-label">Day 2</div><div class="step-val">Actual = 60 → S₂ = 0.3×60 + 0.7×50 = <strong style="color:#ddd">53</strong></div></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="color:var(--l2);border-color:var(--l2);background:var(--l2bg)">3</div>
+              <div><div class="step-label">Day 3</div><div class="step-val">Actual = 45 → S₃ = 0.3×45 + 0.7×53 = <strong style="color:#ddd">50.6</strong></div></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="color:var(--l2);border-color:var(--l2);background:var(--l2bg)">4</div>
+              <div><div class="step-label">Day 4 Forecast</div><div class="step-val" style="color:var(--l2);font-weight:600">Use S₃ ≈ 51 units — blends trend without overreacting to Day 3 dip</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: LAYER 3 -->
+  <div class="slide" data-index="4">
+    <div class="slide-inner">
+      <div class="layer-header">
+        <div class="layer-badge" style="color:var(--l3);border-color:var(--l3);background:var(--l3bg)">3</div>
+        <div class="layer-title">
+          <h2>Sigmoid Continuous Correction</h2>
+          <p style="color:var(--l3)">Scale orders up or down smoothly — no rigid thresholds or sudden jumps</p>
+        </div>
+      </div>
+      <div class="two-col">
+        <div>
+          <div class="card">
+            <div class="card-label">The Formula</div>
+            <div class="formula-box">Adj = 0.2 + 1.1 ÷ (1 + EXP(−4 × (STR − 1)))</div>
+            <div class="mechanics-list">
+              <div class="mechanic">
+                <div class="mechanic-dot" style="background:var(--l3)"></div>
+                <div>
+                  <div class="mechanic-term" style="color:var(--l3)">STR (Sales Boost Rate)</div>
+                  <div class="mechanic-detail">Actual sales ÷ Expected sales. 0.8 = selling at 80% of target.</div>
+                </div>
+              </div>
+              <div class="mechanic">
+                <div class="mechanic-dot" style="background:var(--l3)"></div>
+                <div>
+                  <div class="mechanic-term" style="color:var(--l3)">Output Range</div>
+                  <div class="mechanic-detail">~0.2 (slow sales) → ~1.3 (booming sales)</div>
+                </div>
+              </div>
+              <div class="mechanic">
+                <div class="mechanic-dot" style="background:var(--l3)"></div>
+                <div>
+                  <div class="mechanic-term" style="color:var(--l3)">Why Sigmoid?</div>
+                  <div class="mechanic-detail">STR 79%→81% transitions coefficient 0.78→0.82 smoothly, not a cliff-jump</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label">📋 Example — Sluggish Sales Week</div>
+          <div class="example-steps">
+            <div class="step">
+              <div class="step-num" style="color:var(--l3);border-color:var(--l3);background:var(--l3bg)">1</div>
+              <div><div class="step-label">Expected</div><div class="step-val"><strong style="color:#ddd">100 units</strong> forecasted</div></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="color:var(--l3);border-color:var(--l3);background:var(--l3bg)">2</div>
+              <div><div class="step-label">Actual sold</div><div class="step-val">80 units → STR = <strong style="color:#ddd">0.80</strong></div></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="color:var(--l3);border-color:var(--l3);background:var(--l3bg)">3</div>
+              <div><div class="step-label">Calculate Adj</div><div class="step-val">0.2 + 1.1÷(1+EXP(−4×(0.8−1))) = <strong style="color:#ddd">~0.54</strong></div></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="color:var(--l3);border-color:var(--l3);background:var(--l3bg)">4</div>
+              <div><div class="step-label">Effect</div><div class="step-val" style="color:var(--l3);font-weight:600">Thursday order reduced to 54% of base — gentle pullback without overreaction</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: LAYER 4 -->
+  <div class="slide" data-index="5">
+    <div class="slide-inner">
+      <div class="layer-header">
+        <div class="layer-badge" style="color:var(--l4);border-color:var(--l4);background:var(--l4bg)">4</div>
+        <div class="layer-title">
+          <h2>Dual-Track Delivery System</h2>
+          <p style="color:var(--l4)">Two orders per week: one cautious, one corrective — risk window cut from 7 → 3.5 days</p>
+        </div>
+      </div>
+      <div class="two-col">
+        <div>
+          <div class="card">
+            <div class="card-label">The Two Orders</div>
+            <div class="mechanics-list">
+              <div class="mechanic">
+                <div class="mechanic-dot" style="background:var(--l4)"></div>
+                <div>
+                  <div class="mechanic-term" style="color:var(--l4)">Monday (Order 1) — Conservative</div>
+                  <div class="mechanic-detail">= Forecast × 3.5 days × 0.8<br>0.8 buffer prevents overstocking if forecast is too high</div>
+                </div>
+              </div>
+              <div class="mechanic">
+                <div class="mechanic-dot" style="background:var(--l4)"></div>
+                <div>
+                  <div class="mechanic-term" style="color:var(--l4)">Thursday (Order 2) — Flexible</div>
+                  <div class="mechanic-detail">= Forecast × 3.5 days × Adj × MidAdj<br>Corrects Monday's estimate using mid-week actual data</div>
+                </div>
+              </div>
+              <div class="mechanic">
+                <div class="mechanic-dot" style="background:var(--l4)"></div>
+                <div>
+                  <div class="mechanic-term" style="color:var(--l4)">Why It Matters</div>
+                  <div class="mechanic-detail">Forecast errors corrected in 3.5 days — not locked in for a full 7-day cycle</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label">📋 Example — "Greek Yogurt 500g"</div>
+          <div class="example-steps">
+            <div class="step">
+              <div class="step-num" style="color:var(--l4);border-color:var(--l4);background:var(--l4bg)">1</div>
+              <div><div class="step-label">Daily Forecast</div><div class="step-val">Smoothed = <strong style="color:#ddd">20 units/day</strong></div></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="color:var(--l4);border-color:var(--l4);background:var(--l4bg)">2</div>
+              <div><div class="step-label">Monday Order</div><div class="step-val">20 × 3.5 × 0.8 = <strong style="color:#ddd">56 units</strong> (conservative)</div></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="color:var(--l4);border-color:var(--l4);background:var(--l4bg)">3</div>
+              <div><div class="step-label">Mid-Week Reality</div><div class="step-val">Mon–Wed actual = 75 units → STR = <strong style="color:#ddd">1.07</strong> (above forecast!)</div></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="color:var(--l4);border-color:var(--l4);background:var(--l4bg)">4</div>
+              <div><div class="step-label">Thursday Order</div><div class="step-val" style="color:var(--l4);font-weight:600">20 × 3.5 × 1.05 ≈ 73 units — detects spike, replenishes aggressively</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: LAYER 5 -->
+  <div class="slide" data-index="6">
+    <div class="slide-inner">
+      <div class="layer-header">
+        <div class="layer-badge" style="color:var(--l5);border-color:var(--l5);background:var(--l5bg)">5</div>
+        <div class="layer-title">
+          <h2>Three-Level Circuit Breaker</h2>
+          <p style="color:var(--l5)">Automatic escalation to stop replenishing dead stock</p>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-label">Escalation Levels</div>
+          <div class="breaker-levels">
+            <div class="breaker" style="border-color:#F6AD5540;background:#271A08">
+              <div class="breaker-icon">👁</div>
+              <div>
+                <div class="breaker-title" style="color:#F6AD55">Level 1 — Watch</div>
+                <div class="breaker-desc">1 week sell-through &lt; 30% → Flagged for observation. No action yet.</div>
+              </div>
+            </div>
+            <div class="breaker" style="border-color:#FC8181aa;background:#2A1010">
+              <div class="breaker-icon">🔒</div>
+              <div>
+                <div class="breaker-title" style="color:#FC8181">Level 2 — Cap</div>
+                <div class="breaker-desc">2 consecutive weeks &lt; 40% → Orders hard-capped at ≤ 50 units.</div>
+              </div>
+            </div>
+            <div class="breaker" style="border-color:#FC8181;background:#3A0808">
+              <div class="breaker-icon">🚫</div>
+              <div>
+                <div class="breaker-title" style="color:#FC8181">Level 3 — Suspend</div>
+                <div class="breaker-desc">3 consecutive weeks &lt; 30% → ALL replenishment halted. Audit required.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label">📋 Example — "Detox Tea"</div>
+          <div class="example-steps">
+            <div class="step">
+              <div class="step-num" style="color:var(--l5);border-color:var(--l5);background:var(--l5bg)">1</div>
+              <div><div class="step-label">Week 1</div><div class="step-val">Sell-through = <strong style="color:#ddd">25%</strong> → <strong style="color:#F6AD55">Level 1: flagged</strong></div></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="color:var(--l5);border-color:var(--l5);background:var(--l5bg)">2</div>
+              <div><div class="step-label">Week 2</div><div class="step-val">Sell-through = <strong style="color:#ddd">35%</strong> → <strong style="color:#FC8181">Level 2: capped ≤ 50 units</strong></div></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="color:var(--l5);border-color:var(--l5);background:var(--l5bg)">3</div>
+              <div><div class="step-label">Week 3</div><div class="step-val">Sell-through = <strong style="color:#ddd">22%</strong> → <strong style="color:#FC8181">Level 3: SUSPENDED</strong></div></div>
+            </div>
+            <div class="step">
+              <div class="step-num" style="color:var(--l5);border-color:var(--l5);background:var(--l5bg)">4</div>
+              <div><div class="step-label">Next Step</div><div class="step-val" style="color:var(--l5);font-weight:600">Team investigates root cause. Replenishment resumes only after resolution.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: SUMMARY -->
+  <div class="slide" data-index="7">
+    <div class="slide-inner">
+      <div style="text-align:center;margin-bottom:8px;">
+        <div style="font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Quick Reference</div>
+        <h2 style="font-family:'DM Serif Display',serif;font-size:clamp(22px,3vw,30px);color:#F0EAD8;">All 5 Layers at a Glance</h2>
+      </div>
+      <table class="summary-table">
+        <thead>
+          <tr>
+            <th>#</th><th>Layer</th><th>What It Does</th><th>Key Formula / Rule</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span style="color:var(--l1);font-weight:700">1</span></td>
+            <td class="bold">ABC-XYZ Classification</td>
+            <td>Groups products into 9 categories for tailored rules</td>
+            <td style="font-family:monospace;font-size:11px;color:#888">A/B/C × X/Y/Z = 9 types</td>
+          </tr>
+          <tr>
+            <td><span style="color:var(--l2);font-weight:700">2</span></td>
+            <td class="bold">Exponential Smoothing</td>
+            <td>Demand forecast weighted to recent data</td>
+            <td style="font-family:monospace;font-size:11px;color:#888">S_t = 0.3×Actual + 0.7×S_(t-1)</td>
+          </tr>
+          <tr>
+            <td><span style="color:var(--l3);font-weight:700">3</span></td>
+            <td class="bold">Sigmoid Correction</td>
+            <td>Scales order size smoothly based on sell-rate</td>
+            <td style="font-family:monospace;font-size:11px;color:#888">Adj = 0.2 + 1.1/(1+EXP(-4×(STR-1)))</td>
+          </tr>
+          <tr>
+            <td><span style="color:var(--l4);font-weight:700">4</span></td>
+            <td class="bold">Dual-Track Delivery</td>
+            <td>Monday conservative + Thursday corrective orders</td>
+            <td style="font-family:monospace;font-size:11px;color:#888">Mon: F×3.5×0.8 / Thu: F×3.5×Adj</td>
+          </tr>
+          <tr>
+            <td><span style="color:var(--l5);font-weight:700">5</span></td>
+            <td class="bold">Circuit Breaker</td>
+            <td>3-level escalation for chronically slow products</td>
+            <td style="font-family:monospace;font-size:11px;color:#888">&lt;30% → Watch → Cap → Suspend</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="margin-top:28px;text-align:center;padding:16px;background:var(--surface);border-radius:8px;border:1px solid var(--border);">
+        <p style="font-size:13px;color:var(--muted);font-style:italic;">The five layers run sequentially — classification feeds the forecast, the forecast feeds the correction, which feeds the dual-track order, all protected by the circuit breaker.</p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end #deck -->
+
+<div id="nav">
+  <button class="nav-btn" id="prevBtn" onclick="go(-1)" disabled>← Back</button>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div id="progress"></div>
+    <span id="slide-counter">1 / 8</span>
+  </div>
+  <button class="nav-btn primary" id="nextBtn" onclick="go(1)">Next →</button>
 </div>
 
-<!-- Main App -->
-<div class="wrap">
-
-  <!-- Top Bar -->
-  <div class="topbar">
-    <div class="brand">
-      <div class="brand-logo">📦</div>
-      <div>
-        <div class="brand-name">UBEST SCANNER</div>
-        <div class="brand-sub">BATCH ORDER ENTRY</div>
-      </div>
-    </div>
-    <div class="status-pill" id="statusPill">
-      <span class="status-dot"></span>
-      <span id="statusText">NOT CONNECTED</span>
-    </div>
-  </div>
-
-  <!-- Session -->
-  <div class="card">
-    <div class="card-title">Session Info</div>
-    <div class="session-row">
-      <div class="field">
-        <label>Branch</label>
-        <select id="branchSel">
-          <option value="">— Select Branch —</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Supplier</label>
-        <select id="supplierSel">
-          <option value="">— Select Supplier —</option>
-        </select>
-      </div>
-    </div>
-    <div style="text-align:right; margin-top:8px;">
-      <button onclick="showSetup()" style="background:transparent;border:none;color:var(--muted2);font-size:12px;cursor:pointer;text-decoration:underline;font-family:var(--mono);">⚙ Change Connection</button>
-    </div>
-  </div>
-
-  <!-- Scanner -->
-  <div class="scanner-card" id="scanCard">
-    <div class="card-title">Barcode Scanner</div>
-    <div class="scan-row">
-      <div class="scan-barcode-wrap">
-        <div class="field" style="margin:0">
-          <label>Barcode / QR Code</label>
-          <input type="text" id="barcodeIn" class="field input barcode-in"
-            placeholder="Scan or type here..."
-            autocomplete="off" autocorrect="off" spellcheck="false" />
-        </div>
-      </div>
-      <div class="scan-qty-wrap">
-        <div class="field" style="margin:0">
-          <label>Qty</label>
-          <input type="number" id="qtyIn" value="1" min="1" class="qty-in" style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:11px 13px;color:var(--text);font-family:var(--mono);font-size:16px;outline:none;width:100%;height:50px;text-align:center;" />
-        </div>
-      </div>
-      <button class="add-btn" onclick="addItem()">＋ Add</button>
-    </div>
-    <div class="hint-row">
-      <span class="hint-dot"></span>
-      Press Enter or click Add after each scan — duplicates merge automatically
-    </div>
-
-    <!-- Camera -->
-    <div class="cam-section" id="camSection">
-      <div id="vid-wrap">
-        <video id="vid" autoplay muted playsinline></video>
-        <div class="cam-overlay"><div class="cam-frame"><div class="cam-beam"></div></div></div>
-      </div>
-      <button class="cam-close" onclick="stopCam()">✕ Close Camera</button>
-    </div>
-    <button class="cam-open-btn" id="camOpenBtn" onclick="openCam()">📷 Use Camera / Auto Scan</button>
-  </div>
-
-  <!-- List Header -->
-  <div class="list-header">
-    <div class="list-title">Scanned Items</div>
-    <div class="count-badge" id="countBadge">0 items</div>
-  </div>
-
-  <!-- Empty State -->
-  <div class="empty" id="emptyState">
-    <span class="empty-icon">🔲</span>
-    <div class="empty-txt">No items scanned yet</div>
-    <div class="empty-sub">Start scanning barcodes above — they'll appear here</div>
-  </div>
-
-  <!-- Item List -->
-  <div class="item-list" id="itemList"></div>
-
-  <!-- Summary -->
-  <div class="summary" id="summary" style="display:none;">
-    <div class="sum-stat" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
-      <div class="sum-val" id="sumItems">0</div>
-      <div class="sum-lbl">Rows</div>
-    </div>
-    <div class="sum-stat" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
-      <div class="sum-val" id="sumQty">0</div>
-      <div class="sum-lbl">Total Qty</div>
-    </div>
-    <div class="sum-stat" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
-      <div class="sum-val" id="sumUniq">0</div>
-      <div class="sum-lbl">Unique SKUs</div>
-    </div>
-  </div>
-
-  <!-- Actions -->
-  <div class="actions">
-    <button class="clear-btn" onclick="clearAll()">🗑 Clear</button>
-    <button class="submit-btn" id="submitBtn" onclick="submitAll()" disabled>
-      <span class="btn-label">🚀 Submit All to Lark Base</span>
-      <span class="spin"></span>
-    </button>
-  </div>
-
-</div>
-
-<div class="toasts" id="toasts"></div>
+<div class="key-hint">← → arrow keys to navigate</div>
 
 <script>
-// ═══════════════════════════════════════
-//  STATE
-// ═══════════════════════════════════════
-let items = [];
-let cfg = {
-  appId: 'cli_a92bb5e5aea25e19',
-  appSecret: 'PjRUNkJoakbhvyLsDGUnddLhSB6Bc5KH',
-  appToken: '',
-  tableId: '',
-  barcodeF: 'Barcode',
-  qtyF: 'Quantity',
-  branchF: 'Branch',
-  supplierF: 'Supplier'
-};
-let token = null;
-let tokenExp = 0;
-let camStream = null;
-let camTimer = null;
+  const slides = document.querySelectorAll('.slide');
+  const dots = [];
+  const progress = document.getElementById('progress');
+  const counter = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const colors = ['#4A90D9','#4A90D9','#4A90D9','#48BB78','#B794F4','#F6AD55','#FC8181','#E8E2D5'];
+  let current = 0;
 
-// Branch & Supplier options — edit these to match your actual data
-const BRANCHES  = ['Main Branch','North Branch','South Branch','Warehouse','Online'];
-const SUPPLIERS = ['Supplier A','Supplier B','Supplier C','Supplier D'];
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.style.background = i === 0 ? colors[0] : '';
+    d.onclick = () => goTo(i);
+    progress.appendChild(d);
+    dots.push(d);
+  });
 
-// ═══════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════
-window.addEventListener('DOMContentLoaded', () => {
-  loadCfg();
-  populateSelects();
-  render();
+  function goTo(idx) {
+    if (idx < 0 || idx >= slides.length) return;
+    slides[current].classList.remove('active');
+    slides[current].classList.add('exit');
+    setTimeout(() => slides[current].classList.remove('exit'), 500);
+    dots[current].classList.remove('active');
+    dots[current].style.background = '';
+    dots[current].style.width = '';
+    current = idx;
+    slides[current].classList.add('active');
+    dots[current].classList.add('active');
+    dots[current].style.background = colors[current];
+    counter.textContent = (current + 1) + ' / ' + slides.length;
+    prevBtn.disabled = current === 0;
+    if (current === slides.length - 1) {
+      nextBtn.textContent = '✓ Done';
+      nextBtn.style.background = '#48BB78';
+      nextBtn.style.borderColor = '#48BB78';
+    } else {
+      nextBtn.textContent = 'Next →';
+      nextBtn.style.background = '';
+      nextBtn.style.borderColor = '';
+    }
+    nextBtn.disabled = false;
+  }
 
-  document.getElementById('barcodeIn').addEventListener('keydown', e => {
-    if (e.key === 'Enter') { e.preventDefault(); addItem(); }
-  });
+  function go(dir) { goTo(current + dir); }
 
-  // If already configured, skip setup
-  if (cfg.appToken && cfg.tableId) {
-    document.getElementById('setupOverlay').classList.remove('show');
-    setStatus('connected', 'CONNECTED');
-  }
-});
-
-function populateSelects() {
-  const bs = document.getElementById('branchSel');
-  const ss = document.getElementById('supplierSel');
-  BRANCHES.forEach(b => {
-    const o = document.createElement('option'); o.value = b; o.textContent = b; bs.appendChild(o);
-  });
-  SUPPLIERS.forEach(s => {
-    const o = document.createElement('option'); o.value = s; o.textContent = s; ss.appendChild(o);
-  });
-}
-
-// ═══════════════════════════════════════
-//  CONFIG
-// ═══════════════════════════════════════
-function loadCfg() {
-  const s = localStorage.getItem('ubest_cfg');
-  if (s) {
-    const saved = JSON.parse(s);
-    cfg = { ...cfg, ...saved };
-  }
-  // Pre-fill modal
-  document.getElementById('s_appId').value      = cfg.appId;
-  document.getElementById('s_appSecret').value  = cfg.appSecret;
-  document.getElementById('s_appToken').value   = cfg.appToken;
-  document.getElementById('s_tableId').value    = cfg.tableId;
-  document.getElementById('s_barcodeF').value   = cfg.barcodeF;
-  document.getElementById('s_qtyF').value       = cfg.qtyF;
-  document.getElementById('s_branchF').value    = cfg.branchF;
-  document.getElementById('s_supplierF').value  = cfg.supplierF;
-}
-
-function saveCfg() {
-  cfg.appId     = document.getElementById('s_appId').value.trim();
-  cfg.appSecret = document.getElementById('s_appSecret').value.trim();
-  cfg.appToken  = document.getElementById('s_appToken').value.trim();
-  cfg.tableId   = document.getElementById('s_tableId').value.trim();
-  cfg.barcodeF  = document.getElementById('s_barcodeF').value.trim() || 'Barcode';
-  cfg.qtyF      = document.getElementById('s_qtyF').value.trim()     || 'Quantity';
-  cfg.branchF   = document.getElementById('s_branchF').value.trim()  || 'Branch';
-  cfg.supplierF = document.getElementById('s_supplierF').value.trim()|| 'Supplier';
-  localStorage.setItem('ubest_cfg', JSON.stringify(cfg));
-}
-
-function showSetup() {
-  loadCfg();
-  document.getElementById('setupBanner').className = 'conn-banner';
-  document.getElementById('setupBanner').textContent = '';
-  document.getElementById('setupOverlay').classList.add('show');
-}
-
-// ═══════════════════════════════════════
-//  LARK AUTH — Tenant Access Token
-//  NOTE: Lark's auth endpoint blocks CORS.
-//  Two options built in:
-//   1. Direct (works if Lark allows it or you're on same domain)
-//   2. Via a simple CORS proxy you can self-host (see bottom of file)
-// ═══════════════════════════════════════
-async function getToken() {
-  if (token && Date.now() < tokenExp - 60000) return token;
-
-  // Try direct first (works in Lark mini-apps / same origin)
-  try {
-    const res = await fetch('https://open.larksuite.com/open-apis/auth/v3/tenant_access_token/internal', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ app_id: cfg.appId, app_secret: cfg.appSecret })
-    });
-    const data = await res.json();
-    if (data.code === 0) {
-      token = data.tenant_access_token;
-      tokenExp = Date.now() + (data.expire * 1000);
-      return token;
-    }
-    throw new Error(data.msg);
-  } catch(e) {
-    // CORS blocked — try proxy
-    const proxyUrl = localStorage.getItem('ubest_proxy') || '';
-    if (proxyUrl) {
-      const res = await fetch(proxyUrl + '/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ app_id: cfg.appId, app_secret: cfg.appSecret })
-      });
-      const data = await res.json();
-      if (data.tenant_access_token) {
-        token = data.tenant_access_token;
-        tokenExp = Date.now() + (data.expire * 1000);
-        return token;
-      }
-    }
-    throw new Error('Auth failed — CORS blocked. See setup notes.');
-  }
-}
-
-async function connectLark() {
-  const btn = document.getElementById('connectBtn');
-  const spin = document.getElementById('connectSpin');
-  const label = document.getElementById('connectLabel');
-  const banner = document.getElementById('setupBanner');
-
-  if (!document.getElementById('s_appToken').value.trim()) {
-    banner.className = 'conn-banner err';
-    banner.textContent = '⚠ App Token is required — get it from your Base URL';
-    return;
-  }
-  if (!document.getElementById('s_tableId').value.trim()) {
-    banner.className = 'conn-banner err';
-    banner.textContent = '⚠ Table ID is required — get it from your Base URL';
-    return;
-  }
-
-  btn.disabled = true;
-  label.style.display = 'none';
-  spin.style.display = 'block';
-  banner.className = 'conn-banner';
-  banner.textContent = '';
-
-  saveCfg();
-  token = null; // force refresh
-
-  try {
-    await getToken();
-    banner.className = 'conn-banner ok';
-    banner.textContent = '✅ Connected successfully!';
-    setStatus('connected', 'CONNECTED');
-    setTimeout(() => {
-      document.getElementById('setupOverlay').classList.remove('show');
-      document.getElementById('barcodeIn').focus();
-    }, 800);
-  } catch(e) {
-    banner.className = 'conn-banner err';
-    banner.textContent = '❌ ' + e.message + ' — Check your App ID & Secret';
-    setStatus('error', 'AUTH FAILED');
-  } finally {
-    btn.disabled = false;
-    label.style.display = '';
-    spin.style.display = 'none';
-  }
-}
-
-function setStatus(type, text) {
-  const pill = document.getElementById('statusPill');
-  const txt  = document.getElementById('statusText');
-  pill.className = 'status-pill ' + (type === 'connected' ? 'connected' : type === 'error' ? 'error' : '');
-  txt.textContent = text;
-}
-
-// ═══════════════════════════════════════
-//  ITEMS
-// ═══════════════════════════════════════
-function addItem() {
-  const el = document.getElementById('barcodeIn');
-  const barcode = el.value.trim();
-  const qty = Math.max(1, parseInt(document.getElementById('qtyIn').value) || 1);
-  if (!barcode) { toast('Enter a barcode first', 'err'); el.focus(); return; }
-
-  const ex = items.find(i => i.barcode === barcode);
-  if (ex) {
-    ex.qty += qty;
-    ex.merged = true;
-    toast(`Merged — ${barcode} → qty now ${ex.qty}`, 'wrn');
-  } else {
-    items.push({ id: Date.now(), barcode, qty, merged: false });
-    toast(`Added: ${barcode}`, 'ok');
-  }
-
-  el.value = '';
-  document.getElementById('qtyIn').value = 1;
-  el.focus();
-
-  document.getElementById('scanCard').classList.add('scanning');
-  setTimeout(() => document.getElementById('scanCard').classList.remove('scanning'), 600);
-
-  render();
-}
-
-function removeItem(id) {
-  items = items.filter(i => i.id !== id);
-  render();
-}
-
-function chQty(id, d) {
-  const it = items.find(i => i.id === id);
-  if (it) { it.qty = Math.max(1, it.qty + d); render(); }
-}
-
-function clearAll() {
-  if (!items.length) return;
-  if (!confirm(`Clear all ${items.length} item${items.length>1?'s':''}?`)) return;
-  items = [];
-  render();
-  toast('Cleared', 'inf');
-}
-
-// ═══════════════════════════════════════
-//  RENDER
-// ═══════════════════════════════════════
-function render() {
-  const list    = document.getElementById('itemList');
-  const empty   = document.getElementById('emptyState');
-  const summary = document.getElementById('summary');
-  const subBtn  = document.getElementById('submitBtn');
-  const badge   = document.getElementById('countBadge');
-
-  badge.textContent = `${items.length} item${items.length!==1?'s':''}`;
-
-  if (!items.length) {
-    list.style.display = 'none';
-    empty.style.display = 'block';
-    summary.style.display = 'none';
-    subBtn.disabled = true;
-    return;
-  }
-
-  empty.style.display = 'none';
-  list.style.display = 'flex';
-  summary.style.display = 'flex';
-  subBtn.disabled = false;
-
-  const tQty  = items.reduce((s,i) => s+i.qty, 0);
-  const uSkus = new Set(items.map(i => i.barcode)).size;
-  document.getElementById('sumItems').textContent = items.length;
-  document.getElementById('sumQty').textContent   = tQty;
-  document.getElementById('sumUniq').textContent  = uSkus;
-
-  list.innerHTML = items.map((it, idx) => `
-    <div class="item${it.merged?' merged':''}" id="row-${it.id}">
-      <span class="item-num">${idx+1}</span>
-      <span class="item-bar">${esc(it.barcode)}</span>
-      ${it.merged ? '<span class="merged-tag">+MERGED</span>' : ''}
-      <div class="qty-ctrl">
-        <button class="qb" onclick="chQty(${it.id},-1)">−</button>
-        <span class="item-qty">${it.qty}</span>
-        <button class="qb" onclick="chQty(${it.id},1)">+</button>
-      </div>
-      <button class="del-btn" onclick="removeItem(${it.id})" title="Remove">✕</button>
-    </div>
-  `).join('');
-}
-
-function esc(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-// ═══════════════════════════════════════
-//  SUBMIT
-// ═══════════════════════════════════════
-async function submitAll() {
-  if (!items.length) return;
-  if (!cfg.appToken || !cfg.tableId) {
-    toast('Configure Base connection first', 'err');
-    showSetup(); return;
-  }
-
-  const branch   = document.getElementById('branchSel').value;
-  const supplier = document.getElementById('supplierSel').value;
-
-  const btn = document.getElementById('submitBtn');
-  btn.classList.add('loading');
-  btn.disabled = true;
-  setStatus('connected', 'SUBMITTING…');
-
-  try {
-    const tok = await getToken();
-
-    const records = items.map(it => ({
-      fields: {
-        [cfg.barcodeF]: it.barcode,
-        [cfg.qtyF]: it.qty,
-        ...(branch   ? {[cfg.branchF]:   branch}   : {}),
-        ...(supplier ? {[cfg.supplierF]: supplier} : {})
-      }
-    }));
-
-    // Chunk into batches of 500 (Lark limit)
-    let created = 0;
-    for (let i = 0; i < records.length; i += 500) {
-      const chunk = records.slice(i, i+500);
-      const res = await fetch(
-        `https://open.larksuite.com/open-apis/bitable/v1/apps/${cfg.appToken}/tables/${cfg.tableId}/records/batch_create`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${tok}`
-          },
-          body: JSON.stringify({ records: chunk })
-        }
-      );
-      const data = await res.json();
-      if (data.code !== 0) throw new Error(data.msg || `API error code ${data.code}`);
-      created += data.data?.records?.length || chunk.length;
-    }
-
-    toast(`✅ ${created} record${created!==1?'s':''} added to Lark Base!`, 'ok');
-    setStatus('connected', 'CONNECTED');
-    items = [];
-    render();
-
-  } catch(e) {
-    toast('❌ ' + e.message, 'err');
-    setStatus('error', 'SUBMIT FAILED');
-    console.error(e);
-  } finally {
-    btn.classList.remove('loading');
-    btn.disabled = items.length === 0;
-  }
-}
-
-// ═══════════════════════════════════════
-//  CAMERA SCANNING
-// ═══════════════════════════════════════
-async function openCam() {
-  if (!('BarcodeDetector' in window)) {
-    toast('Camera scanning needs Chrome on Android or Desktop Chrome 88+', 'err');
-    return;
-  }
-  try {
-    camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:'environment' } });
-    document.getElementById('vid').srcObject = camStream;
-    document.getElementById('camSection').classList.add('show');
-    document.getElementById('camOpenBtn').style.display = 'none';
-
-    const det = new BarcodeDetector({ formats:['qr_code','code_128','ean_13','ean_8','code_39','upc_a','upc_e','code_93'] });
-    let last = '', lastT = 0;
-    camTimer = setInterval(async () => {
-      const vid = document.getElementById('vid');
-      if (vid.readyState !== vid.HAVE_ENOUGH_DATA) return;
-      try {
-        const bcs = await det.detect(vid);
-        if (bcs.length) {
-          const v = bcs[0].rawValue, now = Date.now();
-          if (v !== last || now - lastT > 2500) {
-            last = v; lastT = now;
-            document.getElementById('barcodeIn').value = v;
-            addItem();
-          }
-        }
-      } catch(e){}
-    }, 400);
-  } catch(e) {
-    toast('Camera access denied', 'err');
-  }
-}
-
-function stopCam() {
-  if (camStream) { camStream.getTracks().forEach(t=>t.stop()); camStream = null; }
-  if (camTimer)  { clearInterval(camTimer); camTimer = null; }
-  document.getElementById('camSection').classList.remove('show');
-  document.getElementById('camOpenBtn').style.display = '';
-}
-
-// ═══════════════════════════════════════
-//  TOAST
-// ═══════════════════════════════════════
-function toast(msg, type='inf') {
-  const el = document.createElement('div');
-  el.className = `toast ${type}`;
-  el.textContent = msg;
-  document.getElementById('toasts').appendChild(el);
-  setTimeout(() => el.style.opacity = '0', 2500);
-  setTimeout(() => el.remove(), 2800);
-}
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(1);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') go(-1);
+  });
 </script>
-
-<!--
-════════════════════════════════════════════════════════
-  HOW TO ADD THIS INTO LARK BASE
-════════════════════════════════════════════════════════
-
-  STEP 1 — Get your App Token & Table ID
-  ────────────────────────────────────────
-  Open your Lark Base. Look at the URL:
-  https://base.larksuite.com/base/[APP_TOKEN]/table/[TABLE_ID]
-  Copy both values into the setup screen.
-
-  STEP 2 — Add as Lark Mini App (Recommended)
-  ─────────────────────────────────────────────
-  1. Go to Lark Open Platform → Your App → Ability → Web App / Mini App
-  2. Upload this HTML file or host it (GitHub Pages, Vercel, etc.)
-  3. Set the URL as the Mini App home page
-  4. Add Base permissions: bitable:app:readonly, bitable:record:write
-  5. Publish and add to your workspace
-
-  STEP 3 — Embed directly in Base (Dashboard widget)
-  ────────────────────────────────────────────────────
-  1. In your Base, click + to add a Dashboard view
-  2. Add an "Embed" or "HTML" widget
-  3. Paste the URL of where you've hosted this file
-
-  CORS NOTE
-  ──────────
-  If you get auth errors, Lark blocks cross-origin auth calls from
-  plain web pages. To fix this, deploy this 3-line Cloudflare Worker:
-
-  // worker.js (deploy at workers.cloudflare.com — free tier)
-  export default {
-    async fetch(req) {
-      const body = await req.json();
-      const r = await fetch('https://open.larksuite.com/open-apis/auth/v3/tenant_access_token/internal', {
-        method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
-      });
-      const data = await r.json();
-      return new Response(JSON.stringify(data), {
-        headers:{ 'Content-Type':'application/json', 'Access-Control-Allow-Origin':'*' }
-      });
-    }
-  }
-
-  Then in browser console run:
-  localStorage.setItem('ubest_proxy', 'https://your-worker.workers.dev')
-
-════════════════════════════════════════════════════════
--->
 </body>
 </html>
